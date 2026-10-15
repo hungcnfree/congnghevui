@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thợ cơ khí tập sự - Bài 3: Bản vẽ chi tiết</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4fcf1;--panel:#ffffff;--ink:#0a1a4a;--mute:#35523f;--line:#c6e5bf;--hd:#e2f5dc;--ok:#1b8a4a;--bad:#c4392e;--star:#f5a524;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body[data-a="1"]{--acc:#d63a3a;--accbg:#fde1e1;--onacc:#fff;--acct:#a82020}
+body[data-a="2"]{--acc:#cf5f0b;--accbg:#ffe8d0;--onacc:#fff;--acct:#a24a05}
+body[data-a="3"]{--acc:#c79700;--accbg:#fff3c4;--onacc:#2b2100;--acct:#7a5a00}
+body[data-a="4"]{--acc:#1f8f4e;--accbg:#d9f3e4;--onacc:#fff;--acct:#146a37}
+body[data-a="5"]{--acc:#1f6fd1;--accbg:#dbeafc;--onacc:#fff;--acct:#14529e}
+body[data-a="6"]{--acc:#3b3fb8;--accbg:#e0e1fa;--onacc:#fff;--acct:#2b2f8a}
+body[data-a="7"]{--acc:#8a3fc7;--accbg:#eddcfa;--onacc:#fff;--acct:#67279a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12241a;--panel:#1a3123;--ink:#e6f4ea;--mute:#9cbaa8;--line:#2d4c3a;--hd:#1e3b2a}body[data-a]{--accbg:color-mix(in srgb,var(--acc) 26%,var(--panel));--acct:color-mix(in srgb,var(--acc) 55%,#fff)}}
+:root[data-theme="dark"]{--bg:#12241a;--panel:#1a3123;--ink:#e6f4ea;--mute:#9cbaa8;--line:#2d4c3a;--hd:#1e3b2a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Be Vietnam Pro',system-ui,sans-serif;font-size:16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 18px;background:var(--hd);border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:20px}header p{margin:2px 0 0;color:var(--mute);font-size:14px}
+.stat{display:flex;align-items:center;gap:10px;font-weight:600}
+#stars{color:var(--star);font-size:20px}#badge{background:var(--accbg);color:var(--acct);padding:4px 12px;border-radius:99px;font-size:14px}
+.wrap{max-width:1250px;margin:auto;padding:12px}
+.tabs,.parts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+button{font:inherit;color:var(--ink);cursor:pointer}
+.tabs button{padding:10px 16px;border:1px solid var(--line);border-top:4px solid var(--c);background:var(--panel);border-radius:8px;font-weight:600}
+.tabs [data-a="1"]{--c:#d63a3a;--oc:#fff}
+.tabs [data-a="2"]{--c:#cf5f0b;--oc:#fff}
+.tabs [data-a="3"]{--c:#c79700;--oc:#2b2100}
+.tabs [data-a="4"]{--c:#1f8f4e;--oc:#fff}
+.tabs [data-a="5"]{--c:#1f6fd1;--oc:#fff}
+.tabs [data-a="6"]{--c:#3b3fb8;--oc:#fff}
+.tabs [data-a="7"]{--c:#8a3fc7;--oc:#fff}
+
+.tabs button.on{background:var(--c);color:var(--oc);border-color:var(--c)}
+#panel{border-top:4px solid var(--acc)}
+main.w4{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)}
+@media(max-width:900px){main.w4{grid-template-columns:1fr}}
+.parts button{padding:6px 12px;border:1px solid var(--line);background:var(--panel);border-radius:99px;font-size:14px}
+.parts button.on{background:var(--accbg);color:var(--acct);border-color:var(--acct);font-weight:600}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;align-items:start}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+#sheet{width:100%;display:block;background:#fff;border-radius:4px}
+#sheet text{fill:#111;font-family:'Be Vietnam Pro',sans-serif}
+.v{stroke:#111;stroke-width:1.8;fill:none}.h{stroke:#333;stroke-width:.7;stroke-dasharray:4 2.5;fill:none}
+.c{stroke:#111;stroke-width:.6;stroke-dasharray:12 2.5 2 2.5;fill:none}.d{stroke:#111;stroke-width:.7;fill:none}.tb{stroke:#111;stroke-width:1;fill:none}
+.hl{fill:rgba(255,200,40,.35);stroke:#f5a524;stroke-width:1.5;animation:pl 1s ease-in-out infinite alternate}
+@keyframes pl{to{fill:rgba(255,200,40,.12)}}
+.tg{fill:transparent;cursor:pointer}.tg:hover{fill:rgba(31,100,160,.15)}
+.tg.ok{fill:rgba(34,160,90,.4);stroke:#1b8a4a;stroke-width:1.5}.tg.bad{fill:rgba(220,60,50,.35)}
+.mk{cursor:pointer}.mk circle{fill:#fff;stroke:var(--acc);stroke-width:2}.mk text{text-anchor:middle;font-size:11px;font-weight:700;fill:var(--acc)!important}
+.mk.okm circle{fill:#1b8a4a;stroke:#1b8a4a}.mk.okm text{fill:#fff!important}
+h2{font-size:17px;margin:0 0 6px}p.s{color:var(--mute);font-size:14px;margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{padding:10px 14px;border:2px solid var(--acc);background:var(--panel);border-radius:10px;font-weight:600;touch-action:none;user-select:none;cursor:grab}
+.chip.sel{background:var(--accbg)}.chip.used{opacity:.35;pointer-events:none}.chip.bad{animation:sh .35s;border-color:var(--bad)}
+.ghost{position:fixed;z-index:99;pointer-events:none;opacity:.9;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.opts{display:grid;gap:8px;margin:10px 0}
+.opt{padding:11px 14px;border:1px solid var(--line);background:var(--panel);border-radius:8px;text-align:left}
+.opt:hover{background:var(--accbg)}.opt.ok{background:#d6f1e1;border-color:var(--ok);color:#0f5a2f}.opt.bad{background:#fbdcd8;border-color:var(--bad);color:#7d231b;animation:sh .35s}
+.go{padding:10px 18px;border:0;background:var(--acc);color:var(--onacc);border-radius:8px;font-weight:600}
+.st{display:flex;gap:6px;list-style:none;padding:0;margin:0 0 10px;flex-wrap:wrap}
+.st li{flex:1;min-width:90px;text-align:center;font-size:13px;padding:6px 4px;border-radius:6px;background:var(--bg);color:var(--mute)}
+.st li.on{background:var(--acc);color:var(--onacc);font-weight:600}.st li.dn{background:var(--accbg);color:var(--acct)}
+.msg{min-height:22px;font-size:14px;color:var(--mute);margin:4px 0}.msg.g{color:var(--ok);font-weight:600}.msg.r{color:var(--bad)}
+.note{background:var(--accbg);border-radius:8px;padding:8px 12px;font-size:14px;margin-top:8px}
+table.kq{border-collapse:collapse;width:100%;font-size:14px;margin-top:8px}table.kq td,table.kq th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}table.kq th{background:var(--accbg);color:var(--acct)}
+.big{font-size:18px;font-weight:700}
+footer{padding:14px 12px 18px;text-align:center}
+.ft{display:inline-flex;align-items:center;gap:12px;font-size:13px;color:var(--mute);letter-spacing:.2px}
+.ft i{display:block;width:44px;height:1px;background:linear-gradient(90deg,transparent,var(--line))}
+.ft i:last-child{transform:scaleX(-1)}
+.ft b{color:var(--acct);font-weight:600}.ft s{text-decoration:none;color:#e0a912}
+.t4 td{vertical-align:top}.slot{min-height:44px;border:2px dashed var(--acc);border-radius:8px;padding:6px 8px;font-size:14px;background:var(--accbg)}
+.slot.ok{border-style:solid;border-color:var(--ok);background:#d6f1e1;color:#0f5a2f}.lock{color:var(--mute);background:var(--bg);text-align:center}
+textarea.in{width:100%;min-height:58px;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:6px;padding:6px;background:var(--panel);color:var(--ink)}
+textarea.in.ok{border-color:var(--ok);background:#d6f1e1;color:#0f5a2f}textarea.in.bad{border-color:var(--bad);background:#fbdcd8;color:#7d231b}
+.chip{text-align:left;max-width:100%}.t4 th{width:26%}.t4 th:first-child{width:22%}
+.sc{font-weight:700;color:var(--acct)}.stat{flex-wrap:wrap}
+[hidden]{display:none!important}
+.md{position:fixed;inset:0;z-index:50;background:rgba(10,26,74,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.mdc{background:var(--panel);color:var(--ink);border-radius:14px;padding:20px;width:min(100%,460px);max-height:94vh;overflow:auto;border-top:5px solid var(--acc);box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.mdc label{display:block;font-weight:600;font-size:14px;margin:10px 0 4px}
+.mdc input{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:2px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
+.mdc input:focus{outline:none;border-color:var(--acc)}
+.mdc .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+#pimg{width:100%;border-radius:8px;border:1px solid var(--line);display:block}
+</style></head><body>
+<header><div><h1>Thợ cơ khí tập sự</h1><p>Bài 3 · Bản vẽ chi tiết · Công nghệ 8</p></div>
+<div class="stat"><span id="stars">★ 0</span><span id="badge">Thợ tập sự</span><span id="score" class="sc"></span><button class="go" id="exp">🧾 Xuất phiếu nộp bài</button></div></header>
+<div class="wrap">
+<div class="tabs" id="tabs"><button data-a="1">1. Bản vẽ có gì?</button><button data-a="2">2. Đọc theo 4 bước</button><button data-a="3">3. Thám tử bản vẽ</button><button data-a="4">4. Thử thách tay nghề</button></div>
+<div class="parts" id="parts"></div>
+<main><section class="card"><svg id="sheet" viewBox="0 0 420 297" role="img" aria-label="Bản vẽ chi tiết"></svg></section>
+<section class="card" id="panel"></section></main></div>
+<div class="md" id="md" hidden><div class="mdc" role="dialog" aria-modal="true" aria-labelledby="mdt"><h2 id="mdt">Phiếu nộp bài</h2><div id="mdf"><p class="s">Nhập thông tin của em để in lên phiếu kết quả.</p><label for="hn">Họ và tên</label><input id="hn" autocomplete="name" placeholder="Ví dụ: Nguyễn Văn An"><label for="lp">Lớp</label><input id="lp" placeholder="Ví dụ: 8A1"><div class="msg r" id="mde"></div><div class="row"><button class="opt" id="mdx">Hủy</button><button class="go" id="mdg">Xuất phiếu</button></div></div><div id="mdp" hidden><img id="pimg" alt="Phiếu kết quả học tập"><p class="s" id="pnote" style="margin-top:8px">Phiếu đã sẵn sàng. Bấm Tải ảnh phiếu rồi nộp cho thầy nhé.</p><div class="row"><button class="opt" id="pcl">Đóng</button><button class="go" id="pdl">Tải ảnh phiếu</button></div></div></div></div>
+<footer><span class="ft"><i></i><span><s>✦</s> Thầy <b>Hùng</b> · Công nghệ</span><i></i></span></footer>
+<script>
+(function(){
+var P={
+'ong-lot':{n:'Ống lót',lb:'Ống lót (Hình 3.5)',D:28,d:16,L:35,k:3.2,to:'02',vn:'Hình chiếu đứng, hình chiếu cạnh',
+dim:[['Đường kính ngoài của ống lót là bao nhiêu?','Ø28',['Ø16','Ø35','35']],['Đường kính lỗ của ống lót là bao nhiêu?','Ø16',['Ø28','Ø8','35']],['Chiều dài của ống lót là bao nhiêu?','35',['Ø28','28','16']]],
+dz:['dn','dl','dai'],kq:'Kích thước chung: Ø28, 35. Đường kính ngoài Ø28, đường kính lỗ Ø16, chiều dài 35.',mk:{h:[352,105],k:[176,172],y:[238,180]}},
+'ong-lot-nho':{n:'Ống lót',lb:'Ống lót (Hình 3.1)',D:14,d:8,L:18,k:6,to:'03',vn:'Hình chiếu đứng, hình chiếu cạnh',
+dim:[['Đường kính ngoài của ống lót là bao nhiêu?','Ø14',['Ø8','Ø18','18']],['Đường kính lỗ của ống lót là bao nhiêu?','Ø8',['Ø14','Ø4','18']],['Chiều dài của ống lót là bao nhiêu?','18',['Ø14','14','8']]],
+dz:['dn','dl','dai'],kq:'Kích thước chung: Ø14, 18. Đường kính ngoài Ø14, đường kính lỗ Ø8, chiều dài 18.',mk:{h:[352,105],k:[176,172],y:[238,180]}},
+'dau-con':{n:'Đầu côn',lb:'Đầu côn (Hình 3.3)',to:'01',vn:'Hình chiếu đứng, hình chiếu cạnh',
+dim:[['Đường kính đầu to của đầu côn là bao nhiêu?','Ø30',['Ø20','Ø10','40']],['Đường kính đầu nhỏ của đầu côn là bao nhiêu?','Ø20',['Ø30','Ø10','10']],['Đường kính lỗ của đầu côn là bao nhiêu?','Ø10',['Ø20','Ø30','10']],['Chiều dài toàn bộ của đầu côn là bao nhiêu?','40',['10','30','Ø30']]],
+dz:['d20','d30','d10','c10','dai'],kq:'Kích thước chung: Ø30, 40. Đầu to Ø30, đầu nhỏ Ø20, lỗ Ø10, phần trụ cao 10.',mk:{h:[360,100],k:[194,179],y:[238,180]}},
+'goi-do':{n:'Gối đỡ',lb:'Gối đỡ (Hình 3.6)',to:'03',vn:'Hình chiếu đứng, hình chiếu bằng',
+dim:[['Chiều dài của đế gối đỡ là bao nhiêu?','50',['25','30','Ø20']],['Chiều cao toàn bộ của gối đỡ là bao nhiêu?','25',['10','30','50']],['Đường kính lỗ của gối đỡ là bao nhiêu?','Ø20',['Ø30','Ø10','25']],['Chiều cao phần đế là bao nhiêu?','10',['25','30','Ø20']]],
+dz:['d30','c25','c10','r25','dai','dk'],kq:'Kích thước chung: 50, 25, 25. Đường kính lỗ Ø20, phần đế cao 10, phần thân rộng 30.',mk:{h:[38,70],k:[196,201],y:[238,180]}}};
+P['bac-vai']={n:'Bạc có vai',lb:'Bạc có vai',to:'04',mat:'Đồng',yc:['1. Mài nhẵn bề mặt','2. Sơn chống gỉ.'],vn:'Hình chiếu đứng, hình chiếu cạnh'};
+var ORD=['ong-lot','ong-lot-nho','dau-con','goi-do'];
+var S={part:'ong-lot',act:1,stars:0,res:{a1:0,a2:0,a3:0,a4:[0,0,0,0]}},T={},W4=[.5,.75,.75,1];
+function $(s){return document.querySelector(s)}
+function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),x=a[i];a[i]=a[j];a[j]=x}return a}
+try{S.stars=+localStorage.getItem('bv3_stars')||0;var rs=JSON.parse(localStorage.getItem('bv3_res')||'null');if(rs&&rs.a4&&rs.a4.length==4)S.res=rs}catch(e){}
+function addStars(n){S.stars+=n;try{localStorage.setItem('bv3_stars',S.stars)}catch(e){}head()}
+function fmt(n){return (Math.round(n*100)/100).toString().replace('.',',')}
+function pts(){var r=S.res;return[r.a1*2,r.a2*2.5,r.a3*2.5,r.a4.reduce(function(a,v,i){return a+v*W4[i]},0)]}
+function sumScore(){return Math.round(pts().reduce(function(a,v){return a+v},0)*10)/10}
+function rec(k,i,v){if(k=='a4')S.res.a4[i]=Math.max(S.res.a4[i],v);else S.res[k]=Math.max(S.res[k],v);try{localStorage.setItem('bv3_res',JSON.stringify(S.res))}catch(e){}head()}
+function head(){$('#score').textContent='Điểm: '+fmt(sumScore())+'/10';$('#stars').textContent='★ '+S.stars;$('#badge').textContent=S.stars<8?'Thợ tập sự':S.stars<20?'Thợ lành nghề':'Thợ đọc bản vẽ'}
+/* ---------- vẽ bản vẽ ---------- */
+function mk(id){var p=P[id],o=[],t={},yc=p.yc||['1. Làm tù cạnh','2. Mạ kẽm.'];
+function ln(a,b,c,d,k){o.push('<line x1="'+a+'" y1="'+b+'" x2="'+c+'" y2="'+d+'" class="'+k+'"/>')}
+function rc(x,y,w,h,k){o.push('<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" class="'+k+'"/>')}
+function ci(x,y,r,k){o.push('<circle cx="'+x+'" cy="'+y+'" r="'+r+'" class="'+k+'"/>')}
+function tx(x,y,s,a,z,b){o.push('<text x="'+x+'" y="'+y+'" text-anchor="'+(a||'middle')+'" font-size="'+(z||8)+'"'+(b?' font-weight="700"':'')+'>'+s+'</text>')}
+function tg(i,x,y,w,h,l){t[i]={x:x,y:y,w:w,h:h,l:l}}
+function dh(x1,x2,y,lab,yo,i,l){ln(x1,yo+2,x1,y+3,'d');ln(x2,yo+2,x2,y+3,'d');o.push('<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" class="d" marker-start="url(#ar)" marker-end="url(#ar)"/>');tx((x1+x2)/2,y-2.5,lab,'middle',9);if(i)tg(i,(x1+x2)/2-15,y-13,30,16,l)}
+function dv(x,y1,y2,lab,xo,i,l,xt){var s=xo<x?1:-1;ln((xt==null?xo:xt)+s*2,y1,x+s*3,y1,'d');ln(xo+s*2,y2,x+s*3,y2,'d');o.push('<line x1="'+x+'" y1="'+y1+'" x2="'+x+'" y2="'+y2+'" class="d" marker-start="url(#ar)" marker-end="url(#ar)"/>');
+o.push('<text transform="translate('+(x-2.5)+','+((y1+y2)/2)+') rotate(-90)" text-anchor="middle" font-size="9">'+lab+'</text>');if(i)tg(i,x-13,(y1+y2)/2-15,16,30,l)}
+function ld(cx,cy,r,ang,len,lab,an,i,l){var a=ang*Math.PI/180,c=Math.cos(a),s=Math.sin(a),px=cx+r*c,py=cy-r*s,qx=cx+(r+len)*c,qy=cy-(r+len)*s,e=qx+(an=='start'?14:-14);
+o.push('<line x1="'+qx+'" y1="'+qy+'" x2="'+px+'" y2="'+py+'" class="d" marker-end="url(#ar)"/>');ln(qx,qy,e,qy,'d');tx(e+(an=='start'?1:-1),qy-2.5,lab,an,9);if(i)tg(i,an=='start'?qx:qx-32,qy-13,32,16,l)}
+rc(10,10,400,277,'v');
+if(id=='ong-lot'||id=='ong-lot-nho'){var k=p.k,Dd=p.D*k,d=p.d*k,Ln=p.L*k,ox=50,oy=105,sx=290,R=Dd/2,r=d/2;
+rc(ox,oy-R,Ln,Dd,'v');ln(ox,oy-r,ox+Ln,oy-r,'h');ln(ox,oy+r,ox+Ln,oy+r,'h');ln(ox-10,oy,ox+Ln+10,oy,'c');
+ci(sx,oy,R,'v');ci(sx,oy,r,'v');ln(sx-R-10,oy,sx+R+10,oy,'c');ln(sx,oy-R-10,sx,oy+R+10,'c');
+dh(ox,ox+Ln,oy+R+20,p.L,oy+R,'dai','chiều dài');
+ld(sx,oy,R,45,16,'Ø'+p.D,'start','dn','đường kính ngoài');ld(sx,oy,r,135,R-r+16,'Ø'+p.d,'end','dl','đường kính lỗ');
+tg('hcd',ox-4,oy-R-4,Ln+8,Dd+8,'hình chiếu đứng');tg('hcc',sx-R-4,oy-R-4,Dd+8,Dd+8,'hình chiếu cạnh')}
+if(id=='dau-con'){var ox=60,oy=100,sx=300;
+o.push('<path d="M'+ox+' '+(oy-30)+' L'+(ox+90)+' '+(oy-45)+' L'+(ox+120)+' '+(oy-45)+' L'+(ox+120)+' '+(oy+45)+' L'+(ox+90)+' '+(oy+45)+' L'+ox+' '+(oy+30)+' Z" class="v"/>');
+ln(ox+90,oy-45,ox+90,oy+45,'v');ln(ox,oy-15,ox+120,oy-15,'h');ln(ox,oy+15,ox+120,oy+15,'h');ln(ox-10,oy,ox+130,oy,'c');
+ci(sx,oy,45,'v');ci(sx,oy,30,'v');ci(sx,oy,15,'v');ln(sx-55,oy,sx+55,oy,'c');ln(sx,oy-55,sx,oy+55,'c');
+dv(ox-20,oy-30,oy+30,'Ø20',ox,'d20','đường kính đầu nhỏ');dv(ox+150,oy-45,oy+45,'Ø30',ox+120,'d30','đường kính đầu to');dv(ox+136,oy-15,oy+15,'Ø10',ox+120,'d10','đường kính lỗ');
+dh(ox+90,ox+120,oy+61,'10',oy+45,'c10','chiều cao phần trụ');dh(ox,ox+120,oy+79,'40',oy+45,'dai','chiều dài toàn bộ');
+tg('hcd',ox-4,oy-49,128,98,'hình chiếu đứng');tg('hcc',sx-49,oy-49,98,98,'hình chiếu cạnh')}
+if(id=='goi-do'){var ox=60,yb=95,y2=125;
+o.push('<path d="M'+ox+' '+yb+' L'+ox+' '+(yb-24)+' L'+(ox+24)+' '+(yb-24)+' L'+(ox+24)+' '+(yb-60)+' L'+(ox+96)+' '+(yb-60)+' L'+(ox+96)+' '+(yb-24)+' L'+(ox+120)+' '+(yb-24)+' L'+(ox+120)+' '+yb+' Z" class="v"/>');
+ln(ox+36,yb-60,ox+36,yb,'h');ln(ox+84,yb-60,ox+84,yb,'h');ln(ox+60,yb-68,ox+60,yb+8,'c');
+rc(ox,y2,120,60,'v');ln(ox+24,y2,ox+24,y2+60,'v');ln(ox+96,y2,ox+96,y2+60,'v');ci(ox+60,y2+30,24,'v');ln(ox+28,y2+30,ox+92,y2+30,'c');ln(ox+60,y2-8,ox+60,y2+68,'c');
+dh(ox+24,ox+96,yb-74,'30',yb-60,'d30','chiều rộng phần thân trên');dv(ox+148,yb-60,yb,'25',ox+120,'c25','chiều cao toàn bộ',ox+96);dv(ox+134,yb-24,yb,'10',ox+120,'c10','chiều cao phần đế');
+dv(ox+148,y2,y2+60,'25',ox+120,'r25','chiều rộng của chi tiết');dh(ox,ox+120,y2+76,'50',y2+60,'dai','chiều dài của đế');
+ld(ox+60,y2+30,24,45,22,'Ø20','start','dk','đường kính lỗ');
+tg('hcd',ox-4,yb-64,128,68,'hình chiếu đứng');tg('hcc',ox-4,y2-4,128,68,'hình chiếu bằng')}
+if(id=='bac-vai'){var ox=70,oy=100,sx=300;
+o.push('<path d="M'+ox+' '+(oy-48)+' L'+(ox+24)+' '+(oy-48)+' L'+(ox+24)+' '+(oy-30)+' L'+(ox+90)+' '+(oy-30)+' L'+(ox+90)+' '+(oy+30)+' L'+(ox+24)+' '+(oy+30)+' L'+(ox+24)+' '+(oy+48)+' L'+ox+' '+(oy+48)+' Z" class="v"/>');
+ln(ox+24,oy-30,ox+24,oy+30,'v');ln(ox,oy-18,ox+90,oy-18,'h');ln(ox,oy+18,ox+90,oy+18,'h');ln(ox-10,oy,ox+100,oy,'c');
+ci(sx,oy,48,'v');ci(sx,oy,30,'h');ci(sx,oy,18,'v');ln(sx-58,oy,sx+58,oy,'c');ln(sx,oy-58,sx,oy+58,'c');
+dv(ox-22,oy-48,oy+48,'Ø32',ox,'d32','đường kính vai');dv(ox+112,oy-30,oy+30,'Ø20',ox+90,'d20','đường kính thân');
+dh(ox,ox+24,oy+64,'8',oy+48,'v8','bề dày của vai');dh(ox,ox+90,oy+82,'30',oy+48,'dai','chiều dài toàn bộ');
+ld(sx,oy,18,45,46,'Ø12','start','dk','đường kính lỗ');
+tg('hcd',ox-4,oy-52,98,104,'hình chiếu đứng');tg('hcc',sx-52,oy-52,104,104,'hình chiếu cạnh')}
+/* yêu cầu kĩ thuật + khung tên giống SGK */
+tx(252,186,'Yêu cầu kĩ thuật:','start',8);tx(252,198,yc[0],'start',8);tx(252,210,yc[1],'start',8);tg('ykt',246,174,150,42,'yêu cầu kĩ thuật');
+rc(150,225,260,62,'tb');ln(150,243,292,243,'tb');ln(150,261,410,261,'tb');ln(202,225,202,261,'tb');ln(262,225,262,261,'tb');ln(292,225,292,261,'tb');ln(250,261,250,287,'tb');ln(330,261,330,287,'tb');ln(330,274,410,274,'tb');
+tx(176,237,'Người vẽ','middle',7);tx(232,237,'Lê Thị A','middle',7);tx(277,237,'04/10','middle',7);tx(176,255,'Kiểm tra','middle',7);tx(232,255,'Trần Văn B','middle',7);tx(277,255,'04/10','middle',7);
+tx(351,246,p.n.toUpperCase(),'middle',11,1);tx(200,277,'TRƯỜNG THCS HN','middle',7);tx(290,277,'Vật liệu: '+(p.mat||'Thép'),'middle',7);tx(370,270,'Tỉ lệ: 1 : 1','middle',7);tx(370,283,'Tờ số: '+p.to,'middle',7);
+tg('ten',292,225,118,36,'tên gọi của chi tiết');tg('vl',250,261,80,26,'vật liệu chế tạo');tg('tl',330,261,80,13,'tỉ lệ của bản vẽ');
+return{svg:'<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#111"/></marker></defs><rect width="420" height="297" fill="#fff"/>'+o.join('')+'<g id="hlg"></g><g id="tgg"></g><g id="mkg"></g>',t:t}}
+function rectH(r,c,id){return '<rect class="'+c+'" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" rx="3"'+(id?' data-id="'+id+'"':'')+'/>'}
+function hl(ids){$('#hlg').innerHTML=ids.filter(function(i){return T[i]}).map(function(i){return rectH(T[i],'hl')}).join('')}
+function sheet(){var s=mk(S.act==4?'bac-vai':S.part);T=s.t;$('#sheet').innerHTML=s.svg}
+/* ---------- hoạt động 1 ---------- */
+function act1(){var p=P[S.part],ty=[['hinh','Hình biểu diễn','Gồm hình chiếu, hình cắt,… diễn tả hình dạng, cấu tạo của chi tiết.'],['kt','Kích thước','Gồm các kích thước xác định độ lớn của chi tiết.'],['yc','Yêu cầu kĩ thuật','Gồm chỉ dẫn về gia công, xử lí bề mặt,…'],['kn','Khung tên','Gồm tên gọi chi tiết, vật liệu, tỉ lệ vẽ, họ tên những người có trách nhiệm với bản vẽ,…']];
+var pos={hinh:p.mk.h,kt:p.mk.k,yc:p.mk.y,kn:[140,236]},lt=shuf(['A','B','C','D']),done=0,err=0,sel=null;
+$('#mkg').innerHTML=ty.map(function(t,i){return '<g class="mk" data-mk="'+t[0]+'" transform="translate('+pos[t[0]][0]+','+pos[t[0]][1]+')"><circle r="10"/><text y="4">'+lt[i]+'</text></g>'}).join('');
+$('#panel').innerHTML='<h2>Bản vẽ chi tiết gồm những nội dung nào?</h2><p class="s">Trên bản vẽ có 4 chữ cái, mỗi chữ chỉ vào một nội dung. Kéo nhãn bên dưới thả vào đúng chữ cái (hoặc chạm nhãn rồi chạm chữ cái).</p><div class="chips" id="chips">'+shuf(ty).map(function(t){return '<button class="chip" data-k="'+t[0]+'">'+t[1]+'</button>'}).join('')+'</div><div class="msg" id="msg"></div><ul id="info" style="padding-left:18px;margin:6px 0"></ul>';
+var msg=$('#msg');
+function drop(ch,m){if(ch.dataset.k==m.dataset.mk){var t=ty.filter(function(x){return x[0]==m.dataset.mk})[0];m.classList.add('okm');m.querySelector('text').textContent='✓';ch.classList.add('used');ch.classList.remove('sel');sel=null;
+$('#info').insertAdjacentHTML('beforeend','<li><b>'+t[1]+':</b> '+t[2]+'</li>');done++;msg.className='msg g';msg.textContent='Đúng rồi!';
+if(done==4){var n=Math.max(1,4-err);addStars(n);rec('a1',0,n/4);msg.textContent='Hoàn thành! Em nhận được '+n+' ★. Thử đổi sang chi tiết khác ở phía trên nhé.'}}
+else{err++;ch.classList.add('bad');setTimeout(function(){ch.classList.remove('bad')},400);msg.className='msg r';msg.textContent='Chưa đúng, em thử lại nhé.'}}
+[].forEach.call(document.querySelectorAll('.mk'),function(m){m.onclick=function(){if(sel&&!m.classList.contains('okm'))drop(sel,m)}});
+[].forEach.call(document.querySelectorAll('.chip'),function(ch){ch.onpointerdown=function(e){e.preventDefault();var sx=e.clientX,sy=e.clientY,g=ch.cloneNode(true);g.classList.add('ghost');document.body.appendChild(g);ch.setPointerCapture(e.pointerId);
+function mv(v){g.style.left=(v.clientX-g.offsetWidth/2)+'px';g.style.top=(v.clientY-g.offsetHeight/2)+'px'}mv(e);
+ch.onpointermove=mv;ch.onpointerup=function(v){ch.onpointermove=ch.onpointerup=null;g.remove();
+if(Math.hypot(v.clientX-sx,v.clientY-sy)<6){[].forEach.call(document.querySelectorAll('.chip'),function(c){c.classList.remove('sel')});ch.classList.add('sel');sel=ch;return}
+var el=document.elementFromPoint(v.clientX,v.clientY),m=el&&el.closest&&el.closest('[data-mk]');if(m&&!m.classList.contains('okm'))drop(ch,m)}}})}
+/* ---------- hoạt động 2 ---------- */
+function steps(p){var names=['Ống lót','Đầu côn','Gối đỡ','Bu lông'].filter(function(x){return x!=p.n}).slice(0,3);
+return[{t:'Khung tên',z:['ten','vl','tl'],qs:[['Tên gọi của chi tiết là gì?',p.n,names],['Chi tiết được làm bằng vật liệu gì?','Thép',['Nhôm','Gỗ','Nhựa']],['Tỉ lệ của bản vẽ là bao nhiêu?','1 : 1',['1 : 2','2 : 1','1 : 5']]],r:p.n+'; thép; 1 : 1'},
+{t:'Hình biểu diễn',z:['hcd','hcc'],qs:[['Bản vẽ dùng những hình biểu diễn nào?',p.vn,['Hình chiếu đứng, hình chiếu cạnh','Hình chiếu đứng, hình chiếu bằng','Hình chiếu bằng, hình chiếu cạnh','Hình chiếu đứng, hình cắt'].filter(function(x){return x!=p.vn}).slice(0,3)]],r:p.vn},
+{t:'Kích thước',z:p.dz,qs:p.dim,r:p.kq},
+{t:'Yêu cầu kĩ thuật',z:['ykt'],qs:[['Chi tiết có những yêu cầu kĩ thuật nào?','Làm tù cạnh, mạ kẽm',['Mài bóng, sơn đỏ','Khoan thêm lỗ, hàn','Tôi thép, mạ crôm']]],r:'Làm tù cạnh, mạ kẽm'}]}
+function act2(){var p=P[S.part],st=steps(p),si=0,qi=0,got=0,tries=0,total=0;st.forEach(function(s){total+=s.qs.length});
+$('#panel').innerHTML='<h2>Đọc bản vẽ theo 4 bước (Bảng 3.1)</h2><ol class="st" id="st"></ol><div id="q"></div>';
+function render(){$('#st').innerHTML=st.map(function(s,i){return '<li class="'+(i==si?'on':i<si?'dn':'')+'">'+(i+1)+'. '+s.t+'</li>'}).join('');
+if(si>=st.length)return fin();hl(st[si].z);var q=st[si].qs[qi];tries=0;
+$('#q').innerHTML='<p class="big">'+q[0]+'</p><div class="opts">'+shuf([q[1]].concat(q[2])).map(function(x){return '<button class="opt">'+x+'</button>'}).join('')+'</div><div class="msg" id="msg">Nhìn vùng được tô sáng trên bản vẽ.</div>';
+[].forEach.call(document.querySelectorAll('.opt'),function(b){b.onclick=function(){
+if(b.textContent==q[1]){b.classList.add('ok');if(!tries)got++;[].forEach.call(document.querySelectorAll('.opt'),function(x){x.disabled=true});$('#msg').className='msg g';$('#msg').textContent='Chính xác!';
+setTimeout(function(){qi++;if(qi>=st[si].qs.length){qi=0;si++}render()},650)}
+else{tries++;b.classList.add('bad');b.disabled=true;$('#msg').className='msg r';$('#msg').textContent='Chưa đúng, em xem lại vùng sáng rồi chọn lại nhé.'}}})}
+function fin(){hl([]);addStars(got);rec('a2',0,got/total);$('#q').innerHTML='<p class="big">Hoàn thành! +'+got+' ★ (đúng ngay lần đầu '+got+'/'+total+' câu)</p><p class="s">Kết quả đọc bản vẽ '+p.n+' ('+p.lb.replace(/.*\((.*)\)/,'$1')+'):</p><table class="kq"><tr><th>Trình tự đọc</th><th>Kết quả</th></tr>'+st.map(function(s,i){return '<tr><td>'+(i+1)+'. '+s.t+'</td><td>'+s.r+'</td></tr>'}).join('')+'</table><p style="margin-top:10px"><button class="go" id="again">Làm lại</button></p>';$('#again').onclick=act2}
+render()}
+/* ---------- hoạt động 3 ---------- */
+function act3(){var ids=shuf(Object.keys(T).filter(function(i){return i!='hcc'||true})).slice(0,6),qi=0,sc=0,tries=0,lock=false;
+$('#panel').innerHTML='<h2>Thám tử bản vẽ</h2><p class="s">Đọc yêu cầu rồi bấm đúng vào chỗ đó trên bản vẽ. Bấm đúng ngay lần đầu được 1 ★.</p><div class="big" id="ask"></div><div class="msg" id="msg"></div><div class="note" id="prog"></div>';
+var order=['hcd','hcc','ykt','ten','vl','tl'],tl=Object.keys(T).sort(function(a,b){var x=order.indexOf(a),y=order.indexOf(b);return (x<0?9:x)-(y<0?9:y)});
+$('#tgg').innerHTML=tl.map(function(i){return rectH(T[i],'tg',i)}).join('');
+function ask(){tries=0;lock=false;hl([]);if(qi>=ids.length)return end();$('#ask').textContent='Bấm vào: '+T[ids[qi]].l;$('#prog').textContent='Câu '+(qi+1)+'/'+ids.length+' · Đúng ngay lần đầu: '+sc;$('#msg').textContent='';$('#msg').className='msg'}
+function end(){addStars(sc);rec('a3',0,sc/ids.length);$('#ask').textContent='Xong! Em nhận được '+sc+' ★ trên '+ids.length+' câu.';$('#prog').innerHTML='<button class="go" id="again">Chơi lại</button>';$('#again').onclick=act3;$('#tgg').innerHTML=''}
+[].forEach.call(document.querySelectorAll('.tg'),function(r){r.onclick=function(){if(lock)return;var id=r.getAttribute('data-id');
+if(id==ids[qi]){lock=true;r.classList.add('ok');if(!tries)sc++;$('#msg').className='msg g';$('#msg').textContent='Chính xác!';setTimeout(function(){r.classList.remove('ok');qi++;ask()},700)}
+else{tries++;r.classList.add('bad');setTimeout(function(){r.classList.remove('bad')},400);$('#msg').className='msg r';$('#msg').textContent='Chưa đúng, thử lại nhé.';if(tries>=2)hl([ids[qi]])}}});
+ask()}
+/* ---------- hoạt động 4: vận dụng ---------- */
+function norm(x){return x.toLowerCase().replace(/ø/g,' ').replace(/đ/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim()}
+function okTxt(x,gs){var n=norm(x);return gs.every(function(g){return g.some(function(k){return n.indexOf(k)>=0})})}
+var R4=[{s:'Khung tên',n:'Tên gọi chi tiết, vật liệu, tỉ lệ',k:'Bạc có vai; đồng; 1 : 1',nk:[['ten'],['vat lieu'],['ti le','ty le']],kk:[['bac co vai','bac vai'],['dong'],['1 1']]},
+{s:'Hình biểu diễn',n:'Tên gọi hình chiếu, các hình biểu diễn khác (nếu có)',k:'Hình chiếu đứng, hình chiếu cạnh',nk:[['hinh chieu']],kk:[['hinh chieu dung'],['hinh chieu canh']]},
+{s:'Kích thước',n:'Kích thước chung của chi tiết, kích thước các thành phần của chi tiết',k:'Kích thước chung Ø32, 30. Đường kính thân Ø20, đường kính lỗ Ø12, vai dày 8',nk:[['kich thuoc']],kk:[['32'],['30'],['20'],['12'],['8']]},
+{s:'Yêu cầu kĩ thuật',n:'Gia công, xử lí bề mặt',k:'Mài nhẵn bề mặt, sơn chống gỉ',nk:[['gia cong'],['be mat','xu li','xu ly']],kk:[['mai nhan'],['son','chong gi']]}];
+var X4=[[],['Tên trường, số tờ vẽ'],['Bạc có vai; thép; 1 : 2','Hình chiếu đứng, hình chiếu bằng','Làm tù cạnh, mạ kẽm']];
+function dnd(root,drop){var sel=null;
+[].forEach.call(root.querySelectorAll('.chip'),function(ch){ch.onpointerdown=function(e){e.preventDefault();var sx=e.clientX,sy=e.clientY,g=ch.cloneNode(true);g.classList.add('ghost');document.body.appendChild(g);ch.setPointerCapture(e.pointerId);
+function mv(v){g.style.left=(v.clientX-g.offsetWidth/2)+'px';g.style.top=(v.clientY-g.offsetHeight/2)+'px'}mv(e);
+ch.onpointermove=mv;ch.onpointerup=function(v){ch.onpointermove=ch.onpointerup=null;g.remove();
+if(Math.hypot(v.clientX-sx,v.clientY-sy)<6){[].forEach.call(root.querySelectorAll('.chip'),function(c){c.classList.remove('sel')});ch.classList.add('sel');sel=ch;return}
+var el=document.elementFromPoint(v.clientX,v.clientY),sl=el&&el.closest&&el.closest('.slot');if(sl&&!sl.classList.contains('ok')){drop(ch,sl);sel=null}}}});
+[].forEach.call(root.querySelectorAll('.slot'),function(sl){sl.onclick=function(){if(sel&&!sl.classList.contains('ok')){drop(sel,sl);sel=null}}})}
+function act4(){var lv=1,err=0,checks=0,shown=false,names=['Cấp 1: Trình tự','Cấp 2: Nội dung đọc','Cấp 3: Kết quả đọc','Cấp 4: Tự điền'];
+var ins=['Kéo các bước vào cột "Trình tự đọc" theo đúng thứ tự từ 1 đến 4.','Kéo nội dung cần đọc ở mỗi bước vào cột "Nội dung" (có một nhãn thừa).','Nhìn bản vẽ bên trái, kéo kết quả đọc vào cột "Kết quả đọc bản vẽ" (có nhãn thừa).','Các nội dung đã được xóa hết. Em tự điền cột "Nội dung" và "Kết quả đọc", rồi bấm Kiểm tra.'];
+$('#panel').innerHTML='<h2>Thử thách tay nghề: đọc bản vẽ Bạc có vai</h2><ol class="st" id="st"></ol><p class="s" id="ins"></p><table class="kq t4" id="tb"></table><div class="chips" id="chips"></div><div class="msg" id="msg"></div><div id="ac"></div>';
+function cell(i,c){var r=R4[i];
+if(c==1)return lv>=2||lv==4?'<td>'+(i+1)+'. '+r.s+'</td>':'<td><div class="slot" data-r="'+i+'" data-c="1"></div></td>';
+if(c==2){if(lv==1)return '<td class="lock">…</td>';if(lv==2)return '<td><div class="slot" data-r="'+i+'" data-c="2"></div></td>';if(lv==3)return '<td>'+r.n+'</td>';return '<td><textarea class="in" data-r="'+i+'" data-c="2"></textarea></td>'}
+if(lv<3)return '<td class="lock">…</td>';if(lv==3)return '<td><div class="slot" data-r="'+i+'" data-c="3"></div></td>';return '<td><textarea class="in" data-r="'+i+'" data-c="3"></textarea></td>'}
+function render(){var msg;$('#st').innerHTML=names.map(function(n,i){return '<li class="'+(i+1==lv?'on':i+1<lv?'dn':'')+'">'+n+'</li>'}).join('');$('#ins').textContent=ins[lv-1];err=0;
+$('#tb').innerHTML='<tr><th>Trình tự đọc</th><th>Nội dung</th><th>Kết quả đọc bản vẽ</th></tr>'+[0,1,2,3].map(function(i){return '<tr>'+cell(i,1)+cell(i,2)+cell(i,3)+'</tr>'}).join('');
+var ch=[];if(lv==1)R4.forEach(function(r,i){ch.push([r.s,i])});if(lv==2){R4.forEach(function(r,i){ch.push([r.n,i])});ch.push([X4[1][0],-1])}if(lv==3){R4.forEach(function(r,i){ch.push([r.k,i])});X4[2].forEach(function(x){ch.push([x,-1])})}
+$('#chips').innerHTML=shuf(ch).map(function(c){return '<button class="chip" data-r="'+c[1]+'">'+c[0]+'</button>'}).join('');$('#msg').textContent='';$('#msg').className='msg';$('#ac').innerHTML=lv==4?'<button class="go" id="chk">Kiểm tra</button> <button class="opt" id="shw" style="display:none">Xem đáp án mẫu</button><div id="smp"></div>':'';
+if(lv<4)dnd($('#panel'),drop);else{$('#chk').onclick=check;$('#shw').onclick=function(){shown=true;$('#smp').innerHTML='<table class="kq"><tr><th>Nội dung</th><th>Kết quả</th></tr>'+R4.map(function(r){return '<tr><td>'+r.n+'</td><td>'+r.k+'</td></tr>'}).join('')+'</table>'}}}
+function drop(ch,sl){var m=$('#msg');if(ch.dataset.r==sl.dataset.r){sl.textContent=ch.textContent;sl.classList.add('ok');ch.classList.add('used');ch.classList.remove('sel');m.className='msg g';m.textContent='Đúng rồi!';
+if(document.querySelectorAll('.slot.ok').length==4)done()}else{err++;ch.classList.add('bad');setTimeout(function(){ch.classList.remove('bad')},400);m.className='msg r';m.textContent='Chưa đúng, em thử lại nhé.'}}
+function done(){var n=Math.max(1,4-err);addStars(n);rec('a4',lv-1,n/4);$('#msg').className='msg g';$('#msg').textContent='Hoàn thành cấp '+lv+'! +'+n+' ★';
+$('#ac').innerHTML='<button class="go" id="nx">Sang cấp '+(lv+1)+'</button>';$('#nx').onclick=function(){lv++;render()}}
+function check(){checks++;var ok=0,first=checks==1;[].forEach.call(document.querySelectorAll('textarea.in'),function(t){var r=R4[+t.dataset.r],g=t.dataset.c==2?r.nk:r.kk,y=okTxt(t.value,g);t.classList.toggle('ok',y);t.classList.toggle('bad',!y);if(y)ok++});
+var m=$('#msg');if(ok==8){var n=shown?0:first?5:checks==2?3:1;addStars(n);rec('a4',3,shown?.4:first?1:checks==2?.8:.6);m.className='msg g';m.textContent='Tuyệt vời! Em đã tự đọc xong bản vẽ. +'+n+' ★';$('#chk').style.display='none';$('#shw').style.display='none';$('#ac').insertAdjacentHTML('beforeend','<p><button class="go" id="again">Chơi lại từ cấp 1</button></p>');$('#again').onclick=function(){lv=1;checks=0;shown=false;render()}}
+else{m.className='msg r';m.textContent='Đúng '+ok+'/8 ô. Ô đỏ chưa đủ ý, em xem lại bản vẽ và sửa nhé.';if(checks>=2)$('#shw').style.display=''}}
+render()}
+/* ---------- phiếu nộp bài ---------- */
+var AN=['Bản vẽ có gì?','Đọc theo 4 bước','Thám tử bản vẽ','Thử thách tay nghề'],AC=['#d63a3a','#cf5f0b','#c79700','#1f8f4e'],AW=[2,2.5,2.5,3],AD=['Nhận biết 4 nội dung của bản vẽ chi tiết','Đọc bản vẽ theo trình tự Bảng 3.1','Tìm đúng thông tin trên bản vẽ','Đọc bản vẽ qua 4 cấp độ'];
+function pcts(){var r=S.res;return[r.a1,r.a2,r.a3,r.a4.reduce(function(a,v,i){return a+v*W4[i]},0)/3]}
+function comment(name){var p=pcts(),tot=sumScore(),t=name.trim().split(/\s+/),g=t[t.length-1],a;
+if(tot>=9)a='Xuất sắc! Em '+g+' đọc bản vẽ chi tiết chắc tay như một người thợ thực thụ.';else if(tot>=8)a='Rất tốt! Em '+g+' đã nắm vững cách đọc bản vẽ chi tiết.';else if(tot>=6.5)a='Khá lắm! Em '+g+' đã hiểu bài, chỉ cần luyện thêm một chút là đạt điểm cao.';else if(tot>=5)a='Em '+g+' đã có tiến bộ rõ rệt, thầy rất vui vì sự cố gắng của em.';else if(tot>0)a='Cảm ơn em '+g+' đã nỗ lực! Mỗi lần làm lại là một lần giỏi hơn, em cố lên nhé!';else a='Em '+g+' hãy thử các bài rồi xuất phiếu nhé, thầy tin em sẽ làm được!';
+var dn=[],td=[],i;for(i=0;i<4;i++)(p[i]>0?dn:td).push(i);var b='';
+if(dn.length){var st=dn.reduce(function(m,i){return p[i]>p[m]?i:m},dn[0]);b=' Điểm mạnh của em là "'+AN[st]+'".';
+var wk=dn.filter(function(i){return p[i]<0.8&&i!=st}).reduce(function(m,i){return m<0||p[i]<p[m]?i:m},-1);if(wk>=0)b+=' Làm lại "'+AN[wk]+'" để điểm cao hơn nhé!'}
+if(td.length&&tot<9&&b.indexOf('Làm lại')<0)b+=' Đừng quên thử "'+AN[td[0]]+'" nữa nhé!';return a+b}
+function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
+function wrap(x,t,a,b,mw,lh){var ws=t.split(' '),ln='',y=b;ws.forEach(function(w){var tt=ln?ln+' '+w:w;if(x.measureText(tt).width>mw&&ln){x.fillText(ln,a,y);ln=w;y+=lh}else ln=tt});x.fillText(ln,a,y);return y}
+var FN='"Be Vietnam Pro",system-ui,sans-serif';
+function fit(x,t,a,b,mw,sz,wt){while(sz>14){x.font=wt+' '+sz+'px '+FN;if(x.measureText(t).width<=mw)break;sz--}x.fillText(t,a,b)}
+function slip(name,cls){var W=1000,H=1440,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d'),INK='#0a1a4a',MU='#35523f',RB=['#d63a3a','#cf5f0b','#c79700','#1f8f4e','#1f6fd1','#3b3fb8','#8a3fc7'],P=pts(),pc=pcts(),tot=sumScore(),i;
+x.fillStyle='#f4fcf1';x.fillRect(0,0,W,H);RB.forEach(function(k,j){x.fillStyle=k;x.fillRect(j*W/7,0,W/7+1,16)});
+x.fillStyle='#fff';rr(x,24,36,W-48,H-60,22);x.fill();x.strokeStyle='#c6e5bf';x.lineWidth=3;x.stroke();
+x.textAlign='center';x.fillStyle=INK;x.font='700 44px '+FN;x.fillText('PHIẾU KẾT QUẢ HỌC TẬP',W/2,112);
+x.fillStyle=MU;x.font='500 23px '+FN;x.fillText('Thợ cơ khí tập sự · Bài 3: Bản vẽ chi tiết · Công nghệ 8',W/2,152);
+x.fillStyle='#eef9ea';rr(x,60,185,W-120,120,16);x.fill();x.textAlign='left';x.fillStyle=MU;x.font='500 21px '+FN;x.fillText('Họ và tên',90,225);x.fillText('Lớp',630,225);x.fillText('Ngày làm bài',790,225);
+x.fillStyle=INK;fit(x,name,90,276,500,34,'700');fit(x,cls,630,276,140,34,'700');var d=new Date();fit(x,('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear(),790,276,150,28,'700');
+var tc=tot>=8?'#1f8f4e':tot>=6.5?'#1f6fd1':tot>=5?'#b58500':'#cf5f0b',gl=tot>=9?'XUẤT SẮC':tot>=8?'GIỎI':tot>=6.5?'KHÁ':tot>=5?'ĐẠT':'CỐ LÊN NÀO';
+x.fillStyle=tc;x.beginPath();x.arc(190,445,100,0,Math.PI*2);x.fill();x.fillStyle='#fff';x.textAlign='center';x.font='700 72px '+FN;x.fillText(fmt(tot),190,452);x.font='600 26px '+FN;x.fillText('/ 10 điểm',190,492);
+x.textAlign='left';x.fillStyle=tc;x.font='700 54px '+FN;x.fillText(gl,330,430);x.fillStyle=INK;x.font='600 26px '+FN;x.fillText('★ '+S.stars+' sao  ·  '+(S.stars<8?'Thợ tập sự':S.stars<20?'Thợ lành nghề':'Thợ đọc bản vẽ'),330,482);
+x.fillStyle=INK;x.font='700 28px '+FN;x.fillText('KẾT QUẢ TỪNG PHẦN',60,610);
+for(i=0;i<4;i++){var y0=630+i*118;x.fillStyle='#f6fcf4';rr(x,60,y0,W-120,104,14);x.fill();x.strokeStyle='#d6ebd0';x.lineWidth=2;x.stroke();x.fillStyle=AC[i];rr(x,60,y0,16,104,8);x.fill();
+x.textAlign='left';x.fillStyle=INK;x.font='700 28px '+FN;x.fillText((i+1)+'. '+AN[i],96,y0+40);x.fillStyle=MU;
+var sub=i<3?AD[i]+(pc[i]==0?' (chưa làm)':''):'Cấp 1: '+fmt(S.res.a4[0]*W4[0])+' · Cấp 2: '+fmt(S.res.a4[1]*W4[1])+' · Cấp 3: '+fmt(S.res.a4[2]*W4[2])+' · Cấp 4: '+fmt(S.res.a4[3]*W4[3]);fit(x,sub,96,y0+76,420,20,'500');
+x.fillStyle='#e3efe0';rr(x,540,y0+36,200,26,13);x.fill();if(pc[i]>0){x.fillStyle=AC[i];rr(x,540,y0+36,Math.max(26,200*Math.min(1,pc[i])),26,13);x.fill()}
+x.textAlign='right';x.fillStyle=INK;x.font='700 30px '+FN;x.fillText(fmt(P[i])+' / '+fmt(AW[i]),W-84,y0+62)}
+x.textAlign='center';x.fillStyle=MU;x.font='500 19px '+FN;x.fillText('Thang điểm 10 = Bài 1 (2) + Bài 2 (2,5) + Bài 3 (2,5) + Bài 4 (3) · mỗi phần tính kết quả tốt nhất',W/2,1122);
+x.fillStyle='#fff6c9';rr(x,60,1150,W-120,196,16);x.fill();x.strokeStyle='#e9c94a';x.lineWidth=2.5;x.stroke();x.textAlign='left';x.fillStyle='#7a5a00';x.font='700 24px '+FN;x.fillText('Nhận xét của thầy',90,1194);
+x.fillStyle=INK;x.font='500 26px '+FN;wrap(x,comment(name),90,1238,W-180,38);
+x.textAlign='center';x.font='600 24px '+FN;var tx='Thầy Hùng · Công nghệ',w1=x.measureText('✦ ').width,w2=x.measureText(tx).width,sx=W/2-(w1+w2)/2;x.textAlign='left';x.fillStyle='#e0a912';x.fillText('✦',sx,1408);x.fillStyle=MU;x.fillText(tx,sx+w1,1408);
+return c}
+function slug(t){return t.toLowerCase().replace(/đ/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+var slipBlob=null,slipUrl='',slipName='';
+function openMd(){$('#mdf').hidden=false;$('#mdp').hidden=true;$('#mde').textContent='';$('#md').hidden=false;$('#hn').focus()}
+function closeMd(){$('#md').hidden=true;if(slipUrl){URL.revokeObjectURL(slipUrl);slipUrl=''}$('#exp').focus()}
+function makeSlip(){var n=$('#hn').value.trim().replace(/\s+/g,' '),k=$('#lp').value.trim();
+if(n.length<2||!k){$('#mde').textContent='Em nhập đủ họ tên và lớp nhé.';(n.length<2?$('#hn'):$('#lp')).focus();return}
+$('#mdg').disabled=true;$('#mde').textContent='';
+var go=function(){var c=slip(n,k);c.toBlob(function(b){slipBlob=b;slipName='phieu-'+slug(n)+'-'+slug(k)+'.png';slipUrl=URL.createObjectURL(b);$('#pimg').src=slipUrl;$('#mdf').hidden=true;$('#mdp').hidden=false;$('#mdg').disabled=false;$('#pdl').focus()},'image/png')};
+try{Promise.race([document.fonts.load('700 30px "Be Vietnam Pro"'),new Promise(function(r){setTimeout(r,1500)})]).then(go,go)}catch(e){go()}}
+async function saveSlip(){try{if(window.claude&&window.claude.use){var dl=await window.claude.use('downloads');if(dl){await dl.save({filename:slipName,data:slipBlob});return}}}catch(e){if(e&&e.code=='declined')return}
+var a=document.createElement('a');a.href=slipUrl;a.download=slipName;document.body.appendChild(a);a.click();a.remove();$('#pnote').textContent='Nếu máy không tự tải, em nhấn giữ vào ảnh để lưu, hoặc chụp màn hình phiếu nhé.'}
+$('#exp').onclick=openMd;$('#mdx').onclick=closeMd;$('#pcl').onclick=closeMd;$('#mdg').onclick=makeSlip;$('#pdl').onclick=saveSlip;
+$('#md').addEventListener('click',function(e){if(e.target==this)closeMd()});
+document.addEventListener('keydown',function(e){if(e.key=='Escape'&&!$('#md').hidden)closeMd();if(e.key=='Enter'&&!$('#md').hidden&&!$('#mdf').hidden&&e.target.tagName=='INPUT')makeSlip()});
+/* ---------- khung chung ---------- */
+function run(){sheet();[].forEach.call(document.querySelectorAll('#tabs button'),function(b){b.classList.toggle('on',+b.dataset.a==S.act)});
+[].forEach.call(document.querySelectorAll('#parts button'),function(b){b.classList.toggle('on',b.dataset.p==S.part)});
+document.body.setAttribute('data-a',S.act);$('#parts').style.display=S.act==4?'none':'';$('main').className=S.act==4?'w4':'';[null,act1,act2,act3,act4][S.act]()}
+$('#parts').innerHTML=ORD.map(function(i){return '<button data-p="'+i+'">'+P[i].lb+'</button>'}).join('');
+[].forEach.call(document.querySelectorAll('#tabs button'),function(b){b.onclick=function(){S.act=+b.dataset.a;run()}});
+[].forEach.call(document.querySelectorAll('#parts button'),function(b){b.onclick=function(){S.part=b.dataset.p;run()}});
+head();run();
+})();
+</script></body></html>

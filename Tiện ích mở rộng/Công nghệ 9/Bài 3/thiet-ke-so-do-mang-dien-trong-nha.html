@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Thí nghiệm ảo — Thiết kế mạch điện | Công nghệ 9</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{--bg:#eef2f7;--line:#cbd5e1;--text:#0f172a;--muted:#64748b;--HEADER_H:64px;}
+  *{box-sizing:border-box;}
+  html{height:100%;margin:0;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);
+    display:flex;flex-direction:column;height:100vh;overflow:hidden;
+    user-select:none;-webkit-user-select:none;touch-action:manipulation;overscroll-behavior:none;
+    padding-top:var(--HEADER_H);transition:padding-top .3s ease;}
+  body.header-hidden{padding-top:0;}
+  button{font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+
+  /* ============ HEADER ============ */
+  header{position:fixed;top:0;left:0;right:0;height:var(--HEADER_H);
+    background:linear-gradient(90deg,#0f172a,#1e3a8a);color:#fff;
+    display:flex;align-items:center;gap:10px;padding:0 12px;
+    box-shadow:0 2px 12px rgba(0,0,0,.25);z-index:100;
+    transition:transform .3s ease;}
+  header.hidden{transform:translateY(-100%);}
+
+  .hamburger{width:44px;height:44px;flex:none;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
+    border-radius:10px;color:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:.15s;}
+  .hamburger:hover{background:rgba(255,255,255,.22);}
+  .hamburger:active{transform:scale(.94);}
+  .hamburger svg{width:22px;height:22px;stroke:currentColor;fill:none;
+    stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+
+  .header-title{font-size:14px;font-weight:700;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;}
+  .header-title .sub{display:none;font-size:11px;color:#93c5fd;font-weight:600;margin-left:8px;}
+
+  .header-actions{display:flex;align-items:center;gap:8px;flex:none;}
+
+  .icon-btn{width:44px;height:44px;flex:none;border-radius:10px;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
+    color:#fff;cursor:pointer;position:relative;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:20px;transition:.15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+  .icon-btn:hover{background:rgba(255,255,255,.22);}
+  .icon-btn:active{transform:scale(.94);}
+  .icon-btn.power-off{background:linear-gradient(135deg,#16a34a,#15803d);border-color:#15803d;
+    box-shadow:0 2px 8px rgba(22,163,74,.35);}
+  .icon-btn.power-on{background:linear-gradient(135deg,#dc2626,#b91c1c);border-color:#b91c1c;
+    box-shadow:0 2px 8px rgba(220,38,38,.35);}
+  .icon-btn.muted{background:rgba(220,38,38,.4);border-color:rgba(220,38,38,.6);}
+  .icon-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;
+    stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+
+  /* tooltip */
+  .icon-btn[data-tip]:hover::after{content:attr(data-tip);position:absolute;
+    top:calc(100% + 8px);right:0;background:rgba(15,23,42,.95);color:#fff;
+    padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;
+    white-space:nowrap;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.3);
+    animation:fadeIn .15s ease-out;z-index:200;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+
+  .menu-wrap{position:relative;flex:none;}
+  .menu-dropdown{position:absolute;top:calc(100% + 10px);right:0;
+    background:#fff;border:1px solid #cbd5e1;border-radius:12px;
+    box-shadow:0 14px 40px rgba(15,23,42,.28);padding:8px;min-width:260px;
+    z-index:110;display:none;}
+  .menu-dropdown.show{display:block;animation:fadeIn .15s;}
+  .menu-dropdown button{display:flex;align-items:center;gap:10px;width:100%;
+    background:transparent;border:0;text-align:left;padding:14px 16px;border-radius:8px;
+    cursor:pointer;font-size:14px;color:#1e293b;font-weight:500;transition:.15s;min-height:48px;}
+  .menu-dropdown button:hover{background:#eff6ff;color:#1d4ed8;}
+  .menu-dropdown .sep{height:1px;background:#e2e8f0;margin:6px 4px;}
+
+  /* ============ APP LAYOUT ============ */
+  .app{flex:1;display:flex;min-height:0;}
+
+  /* ============ PALETTE (LEFT) ============ */
+  .palette{width:220px;flex:none;background:#fff;border-right:1px solid var(--line);
+    padding:12px 10px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;transition:width .3s ease,padding .3s ease,opacity .2s ease;}
+  .palette.collapsed{width:0;padding:0;opacity:0;overflow:hidden;border-right:none;}
+
+  .palette h3{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;
+    color:var(--muted);margin:6px 4px 10px;font-weight:700;white-space:nowrap;}
+
+  .status-box{padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.55;
+    background:#f1f5f9;border-left:4px solid #94a3b8;color:#334155;
+    margin-bottom:14px;font-weight:500;white-space:pre-line;min-height:56px;}
+  .status-box.ok{background:#f0fdf4;border-color:#16a34a;color:#15803d;}
+  .status-box.warn{background:#fffbeb;border-color:#f59e0b;color:#b45309;}
+  .status-box.error{background:#fef2f2;border-color:#dc2626;color:#b91c1c;}
+  .status-box.info{background:#eff6ff;border-color:#2563eb;color:#1d4ed8;}
+
+  .pal-item{border:1.5px solid #e2e8f0;border-radius:12px;background:#f8fafc;
+    padding:8px 8px 10px;margin-bottom:10px;cursor:grab;text-align:center;
+    transition:.15s;touch-action:none;-webkit-user-select:none;user-select:none;
+    min-height:82px;display:flex;flex-direction:column;justify-content:center;}
+  .pal-item:hover{border-color:#2563eb;background:#eff6ff;transform:translateY(-2px);
+    box-shadow:0 6px 16px rgba(37,99,235,.18);}
+  .pal-item:active{cursor:grabbing;transform:translateY(0);}
+  .pal-preview{height:58px;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;pointer-events:none;}
+  .pal-preview svg{width:100%;height:58px;display:block;}
+  .pal-item span{display:block;font-size:12px;font-weight:700;color:#334155;
+    margin-top:4px;pointer-events:none;}
+
+  .legend{display:flex;align-items:center;gap:8px;font-size:12px;margin:5px 0;
+    color:#475569;white-space:nowrap;}
+  .dot{width:13px;height:13px;border-radius:50%;flex:none;border:2px solid #fff;
+    box-shadow:0 0 0 1px #cbd5e1;}
+
+  /* ============ STAGE ============ */
+  .stage{flex:1;padding:14px;overflow:auto;display:flex;justify-content:center;
+    align-items:flex-start;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+
+  .board{position:relative;width:1060px;height:640px;flex:none;background:#f8fafc;
+    border:3px solid #94a3b8;border-radius:12px;
+    background-image:linear-gradient(rgba(148,163,184,.20) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(148,163,184,.20) 1px,transparent 1px);
+    background-size:22px 22px,22px 22px;
+    box-shadow:0 8px 26px rgba(15,23,42,.13),inset 0 0 60px rgba(148,163,184,.12);
+    transition:box-shadow .2s;touch-action:none;overflow:hidden;cursor:default;}
+  .board.wiring{cursor:crosshair;}
+  .board.explode{animation:shakeBoard .35s 2,flashRed .5s 3;}
+  @keyframes flashRed{0%,100%{box-shadow:0 8px 26px rgba(15,23,42,.13);}
+    50%{box-shadow:0 0 0 12px rgba(255,60,0,.7),0 0 60px rgba(255,60,0,.85);}}
+  @keyframes shakeBoard{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  .blast{position:absolute;pointer-events:none;width:0;height:0;border-radius:50%;
+    box-shadow:0 0 0 0 rgba(255,180,0,.95);
+    animation:blast .9s ease-out forwards;z-index:999;}
+  @keyframes blast{0%{box-shadow:0 0 0 0 rgba(255,220,60,.95),0 0 0 0 rgba(255,80,0,.7);}
+    40%{box-shadow:0 0 0 60px rgba(255,200,60,.6),0 0 0 100px rgba(255,80,0,.35);}
+    100%{box-shadow:0 0 0 160px rgba(255,180,0,0),0 0 0 240px rgba(255,60,0,0);}}
+  .board-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:#94a3b8;font-size:16px;font-weight:600;pointer-events:none;text-align:center;
+    padding:0 40px;line-height:1.6;}
+
+  .wiring-tip{position:absolute;top:12px;left:50%;transform:translateX(-50%);
+    background:rgba(15,23,42,.95);color:#fbbf24;font-size:13px;font-weight:600;
+    padding:10px 18px;border-radius:12px;pointer-events:none;
+    box-shadow:0 6px 20px rgba(0,0,0,.3);z-index:50;display:none;
+    align-items:center;gap:10px;white-space:nowrap;}
+  .wiring-tip.show{display:flex;}
+  .wiring-tip kbd{background:#fbbf24;color:#0f172a;padding:2px 8px;border-radius:5px;
+    font-family:inherit;font-size:12px;font-weight:800;}
+
+  .board-actions{position:absolute;right:18px;bottom:18px;display:flex;
+    align-items:flex-end;gap:14px;z-index:40;pointer-events:none;}
+  .board-actions > *{pointer-events:auto;}
+  .action-trash{width:82px;height:82px;border-radius:16px;background:rgba(148,163,184,.13);
+    border:2.5px dashed rgba(100,116,139,.5);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;cursor:default;transition:.22s;
+    opacity:.6;gap:2px;}
+  .action-trash:hover{opacity:.9;background:rgba(148,163,184,.2);}
+  .action-trash svg{width:42px;height:42px;stroke:#64748b;fill:none;stroke-width:2;
+    stroke-linecap:round;stroke-linejoin:round;transition:.22s;}
+  .action-trash .action-label{font-size:9px;font-weight:800;letter-spacing:.5px;
+    text-transform:uppercase;color:#64748b;transition:.22s;}
+  .action-trash.active{opacity:1;background:rgba(239,68,68,.15);border-color:#dc2626;
+    transform:scale(1.12);box-shadow:0 0 0 10px rgba(220,38,38,.18),0 12px 26px rgba(220,38,38,.3);}
+  .action-trash.active svg{stroke:#dc2626;}
+  .action-trash.active .action-label{color:#dc2626;}
+
+  .action-undo{width:66px;height:66px;border-radius:50%;
+    background:linear-gradient(135deg,#fed7aa,#fdba74);
+    border:2.5px solid #ea580c;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;cursor:pointer;transition:.22s;
+    opacity:.7;gap:1px;color:#7c2d12;box-shadow:0 4px 12px rgba(234,88,12,.25);}
+  .action-undo:hover{opacity:1;background:linear-gradient(135deg,#fdba74,#fb923c);
+    transform:translateY(-2px);box-shadow:0 8px 20px rgba(234,88,12,.4);}
+  .action-undo:active{transform:translateY(0) scale(.95);}
+  .action-undo:disabled{opacity:.25;cursor:not-allowed;transform:none;filter:grayscale(.6);}
+  .action-undo svg{width:30px;height:30px;display:block;}
+  .action-undo .action-label{font-size:8.5px;font-weight:900;letter-spacing:.4px;
+    text-transform:uppercase;color:#7c2d12;}
+
+  #wires,#previewSvg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;}
+  #wires{z-index:1;}
+  #previewSvg{z-index:5;}
+  #wires .wire-hit{pointer-events:stroke;}
+  #wires .waypoint,#wires .dead-end{pointer-events:all;}
+  #wires .wire-base{stroke-width:3.6;fill:none;stroke-linecap:round;stroke-linejoin:round;
+    pointer-events:none;transition:stroke .15s;}
+  #wires .wire-base.phase{stroke:#dc2626;}
+  #wires .wire-base.neutral{stroke:#1e293b;}
+  #wires .wire-base.unknown{stroke:#94a3b8;}
+  #wires .wire-live{stroke-width:3.6;fill:none;stroke-linecap:round;stroke-linejoin:round;
+    stroke-dasharray:14 10;pointer-events:none;filter:drop-shadow(0 0 6px currentColor);
+    animation:flow .55s linear infinite;}
+  #wires .wire-live.phase{stroke:#fbbf24;color:#fbbf24;}
+  #wires .wire-live.neutral{stroke:#60a5fa;color:#60a5fa;}
+  @keyframes flow{to{stroke-dashoffset:-48;}}
+  #wires .wire-hit{stroke:transparent;stroke-width:22;fill:none;cursor:pointer;}
+  #wires .wire-hit:hover{stroke:rgba(239,68,68,.15);}
+  #wires .junction{fill:#00AEEF;stroke:#fff;stroke-width:2.5;pointer-events:none;}
+  #wires .dead-end{fill:#fff;stroke:#64748b;stroke-width:2.6;cursor:move;
+    touch-action:none;transition:stroke .15s;}
+  #wires .dead-end:hover{stroke:#dc2626;stroke-width:3;}
+  #wires .waypoint{fill:#f59e0b;stroke:#fff;stroke-width:2.4;cursor:move;
+    transition:fill .12s;touch-action:none;}
+  #wires .waypoint:hover{fill:#dc2626;}
+  #previewSvg .preview-path{fill:none;stroke-width:3.4;stroke-dasharray:10 8;
+    stroke-linecap:round;stroke-linejoin:round;animation:previewPulse .8s ease-in-out infinite;}
+  @keyframes previewPulse{0%,100%{opacity:.7;}50%{opacity:1;}}
+  #previewSvg .preview-wp{fill:#f59e0b;stroke:#fff;stroke-width:2.4;}
+  #previewSvg .preview-start{fill:#22c55e;stroke:#fff;stroke-width:3;
+    animation:startPulse 1s ease-in-out infinite;}
+  @keyframes startPulse{0%,100%{r:12;}50%{r:15;}}
+  #previewSvg .preview-end{fill:#fff;stroke:#dc2626;stroke-width:2.8;stroke-dasharray:3 2;}
+
+  .comp{position:absolute;z-index:2;touch-action:none;cursor:grab;
+    filter:drop-shadow(0 2px 4px rgba(15,23,42,.12));
+    transform-origin:center center;transition:transform .2s;
+    -webkit-user-select:none;user-select:none;}
+  .comp:active{cursor:grabbing;}
+  .comp.ghost{opacity:.85;pointer-events:none;z-index:9999;
+    filter:drop-shadow(0 10px 20px rgba(0,0,0,.35));}
+  .comp svg{display:block;width:100%;height:100%;pointer-events:none;}
+  .comp.type-board{z-index:1 !important;border:3px dashed rgba(168,85,247,.75);
+    border-radius:14px;background:rgba(168,85,247,.05);
+    box-shadow:0 0 0 1px rgba(168,85,247,.12),inset 0 0 40px rgba(168,85,247,.06);
+    cursor:move;filter:none;}
+  .comp.type-board .board-label{position:absolute;top:-14px;left:14px;
+    background:#f8fafc;padding:2px 12px;font-size:12px;font-weight:800;
+    color:#a855f7;letter-spacing:1px;border-radius:4px;pointer-events:none;
+    z-index:3;text-transform:uppercase;}
+  .resize-handle{position:absolute;width:22px;height:22px;border-radius:50%;
+    background:#a855f7;border:3px solid #fff;z-index:6;
+    box-shadow:0 3px 8px rgba(168,85,247,.5);transition:transform .12s;touch-action:none;}
+  .resize-handle:hover{transform:scale(1.2);background:#7c3aed;}
+  .resize-handle.nw{top:-11px;left:-11px;cursor:nwse-resize;}
+  .resize-handle.ne{top:-11px;right:-11px;cursor:nesw-resize;}
+  .resize-handle.sw{bottom:-11px;left:-11px;cursor:nesw-resize;}
+  .resize-handle.se{bottom:-11px;right:-11px;cursor:nwse-resize;}
+  .term{position:absolute;width:20px;height:20px;border-radius:50%;
+    background:var(--tc,#334155);border:3px solid #fff;transform:translate(-50%,-50%);
+    cursor:crosshair;z-index:3;box-shadow:0 2px 5px rgba(0,0,0,.35);
+    transition:.12s;touch-action:none;}
+  .term:hover{transform:translate(-50%,-50%) scale(1.3);}
+  .term.start-term{background:#22c55e !important;
+    box-shadow:0 0 0 10px rgba(34,197,94,.35);
+    animation:startTermPulse 1s ease-in-out infinite;}
+  @keyframes startTermPulse{0%,100%{box-shadow:0 0 0 8px rgba(34,197,94,.35);}
+    50%{box-shadow:0 0 0 14px rgba(34,197,94,.15);}}
+
+  .ctx-menu{position:absolute;background:#fff;border:1px solid #cbd5e1;
+    border-radius:12px;box-shadow:0 14px 40px rgba(15,23,42,.2);
+    padding:6px;z-index:9999;min-width:200px;}
+  .ctx-menu button{display:flex;align-items:center;gap:10px;width:100%;
+    background:transparent;border:0;text-align:left;padding:14px 16px;
+    border-radius:8px;cursor:pointer;font-size:14px;color:#1e293b;
+    font-family:inherit;font-weight:500;min-height:48px;}
+  .ctx-menu button:hover{background:#eff6ff;color:#1d4ed8;}
+  .ctx-menu button.danger:hover{background:#fee2e2;color:#b91c1c;}
+
+  /* ============ FOOTER ============ */
+  footer{background:linear-gradient(90deg,#0f172a,#1e3a8a);color:#e2e8f0;
+    padding:10px 20px;font-size:12.5px;flex:none;z-index:50;
+    box-shadow:0 -3px 12px rgba(0,0,0,.18);
+    display:flex;align-items:center;justify-content:center;
+    gap:16px;flex-wrap:wrap;text-align:center;line-height:1.5;}
+  footer .footer-item{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+  footer b{color:#93c5fd;font-weight:800;}
+  footer .sep{width:1px;height:16px;background:rgba(255,255,255,.22);flex:none;}
+  footer .footer-badge{display:inline-flex;align-items:center;gap:6px;
+    background:rgba(147,197,253,.12);border:1px solid rgba(147,197,253,.3);
+    padding:3px 10px;border-radius:20px;font-weight:700;color:#bfdbfe;}
+
+  /* ============ TOAST & MODAL ============ */
+  .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:rgba(15,23,42,.96);color:#fff;padding:14px 26px;border-radius:12px;
+    font-size:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.35);
+    transition:transform .3s ease,opacity .25s ease,visibility .25s;
+    z-index:10000;pointer-events:none;max-width:90vw;text-align:center;
+    opacity:0;visibility:hidden;white-space:pre-line;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible;}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);
+    display:none;align-items:center;justify-content:center;z-index:99999;
+    backdrop-filter:blur(6px);padding:20px;}
+  .modal-overlay.show{display:flex;animation:fadeIn .2s;}
+  .modal{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:460px;
+    box-shadow:0 24px 60px rgba(0,0,0,.35);animation:slideUp .25s ease-out;}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .modal h3{margin:0 0 22px;font-size:19px;color:#0f172a;font-weight:800;
+    display:flex;align-items:center;gap:10px;}
+  .modal h3 span.icon{width:36px;height:36px;border-radius:10px;
+    background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;
+    align-items:center;justify-content:center;font-size:18px;color:#fff;}
+  .modal label{display:block;margin-bottom:16px;}
+  .modal label span{display:block;font-size:11.5px;font-weight:800;color:#64748b;
+    margin-bottom:7px;text-transform:uppercase;letter-spacing:.6px;}
+  .modal label span em{color:#dc2626;font-style:normal;margin-left:3px;}
+  .modal input{width:100%;padding:14px 16px;border:1.5px solid #cbd5e1;
+    border-radius:12px;font-size:15px;font-family:inherit;outline:none;
+    transition:.18s;color:#0f172a;background:#f8fafc;}
+  .modal input:focus{border-color:#3b82f6;background:#fff;
+    box-shadow:0 0 0 4px rgba(59,130,246,.14);}
+  .modal input::placeholder{color:#94a3b8;}
+  .modal-actions{display:flex;gap:12px;margin-top:24px;}
+  .modal-actions button{flex:1;padding:14px 16px;border-radius:12px;
+    font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid #cbd5e1;
+    background:#f8fafc;color:#1e293b;font-family:inherit;min-height:52px;transition:.15s;}
+  .modal-actions button.primary{background:linear-gradient(135deg,#16a34a,#15803d);
+    border-color:#15803d;color:#fff;}
+  .modal-actions button:hover{filter:brightness(1.05);}
+
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px;}
+  ::-webkit-scrollbar-thumb:hover{background:#94a3b8;}
+
+  @media (max-width:1200px){
+    .palette{width:190px;}
+    .header-title{font-size:12.5px;}
+  }
+  @media (max-width:900px){
+    .palette{width:170px;}
+    .header-title{font-size:12px;}
+    footer{font-size:11.5px;padding:8px 12px;gap:10px;}
+  }
+  @media (max-width:600px){
+    .header-title{display:none;}
+    .palette{width:150px;}
+    footer .sep{display:none;}
+    footer{gap:6px;font-size:11px;}
+  }
+  @media (pointer:coarse){
+    .term{width:22px;height:22px;border-width:3.5px;}
+    .resize-handle{width:26px;height:26px;}
+    .pal-item{min-height:88px;}
+    .action-trash{width:88px;height:88px;}
+    .action-undo{width:72px;height:72px;}
+  }
+</style>
+</head>
+<body>
+
+<header id="appHeader">
+  <button class="hamburger" id="btnHamburger" data-tip="Kho linh kiện">
+    <svg viewBox="0 0 24 24">
+      <rect x="3" y="4" width="18" height="16" rx="2"/>
+      <line x1="9" y1="4" x2="9" y2="20"/>
+    </svg>
+  </button>
+
+  <div class="header-title">⚡ THÍ NGHIỆM ẢO — CÔNG NGHỆ 9</div>
+
+  <div class="header-actions">
+    <button class="icon-btn power-off" id="btnPower" data-tip="Cấp nguồn (Space)">⏻</button>
+    <button class="icon-btn" id="btnClearWire" data-tip="Xóa tất cả dây">
+      <svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+    </button>
+    <button class="icon-btn" id="btnClear" data-tip="Xóa toàn bộ">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/>
+      </svg>
+    </button>
+    <button class="icon-btn" id="btnAudio" data-tip="Bật/tắt MC">🔊</button>
+    <div class="menu-wrap">
+      <button class="icon-btn" id="btnMenu" data-tip="Menu">
+        <svg viewBox="0 0 24 24">
+          <line x1="4" y1="7" x2="20" y2="7"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="17" x2="20" y2="17"/>
+        </svg>
+      </button>
+      <div class="menu-dropdown" id="menuDropdown">
+        <button data-act="new">🆕 Tạo mới</button>
+        <div class="sep"></div>
+        <button data-act="saveImg">💾 Lưu sản phẩm (PNG)</button>
+        <button data-act="shareZalo">📤 Chia sẻ Zalo · 0973088035</button>
+        <div class="sep"></div>
+        <button data-act="help">❓ Hướng dẫn</button>
+        <button data-act="about">ℹ️ Giới thiệu</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="palette" id="palettePanel">
+    <h3>Trạng thái mạch</h3>
+    <div class="status-box" id="status">Chưa cấp nguồn. Hãy thiết kế mạch rồi bấm "CẤP NGUỒN".</div>
+
+    <h3>Kho linh kiện</h3>
+    <div id="palette"></div>
+
+    <h3 style="margin-top:14px;">Màu dây</h3>
+    <div class="legend"><span class="dot" style="background:#dc2626"></span> Dây pha A (đỏ)</div>
+    <div class="legend"><span class="dot" style="background:#1e293b"></span> Dây trung tính 0 (đen)</div>
+    <div class="legend"><span class="dot" style="background:#94a3b8"></span> Chưa xác định</div>
+
+    <h3 style="margin-top:14px;">Hướng dẫn nhanh</h3>
+    <div style="font-size:11.5px;line-height:1.7;color:#475569;
+      background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px;padding:10px 12px;">
+      <b>• Vẽ dây:</b> Chạm cực → chạm vị trí → chạm đúp kết thúc.<br>
+      <b>• Xoay:</b> Chạm đúp linh kiện (90°).<br>
+      <b>• Menu:</b> Nhấn giữ 2-3 giây.<br>
+      <b>• Xóa:</b> Kéo vào sọt rác.<br>
+      <b>• Hoàn tác:</b> Nút ↩️ góc dưới phải.
+    </div>
+  </aside>
+
+  <main class="stage" id="stage">
+    <div class="board" id="board">
+      <div class="wiring-tip" id="wiringTip">
+        <span>🖱️ <kbd>Chạm</kbd> cực → chạm vị trí → <kbd>Chạm đúp</kbd> kết thúc • <kbd>ESC</kbd> hủy</span>
+      </div>
+      <div class="board-hint" id="boardHint">🖱️ Kéo linh kiện từ kho bên trái thả vào bảng để thiết kế</div>
+      <svg id="wires"></svg>
+      <svg id="previewSvg"></svg>
+      <div class="board-actions">
+        <button class="action-undo" id="btnUndo" title="Hoàn tác (Ctrl+Z)" disabled>
+          <svg viewBox="0 0 32 32">
+            <defs>
+              <linearGradient id="undoBodyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#fb923c"/>
+                <stop offset="100%" stop-color="#9a3412"/>
+              </linearGradient>
+              <linearGradient id="undoHeadGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#fdba74"/>
+                <stop offset="100%" stop-color="#ea580c"/>
+              </linearGradient>
+            </defs>
+            <path d="M 5 12 L 14 5 L 14 10 L 14 14 Z" fill="url(#undoHeadGrad)" stroke="#7c2d12" stroke-width="0.6" stroke-linejoin="round"/>
+            <path d="M 14 10 C 22 10 27 14 27 19 C 27 24 23 27 17 27 L 13 27 L 13 24 L 17 24 C 21 24 23 22 23 19 C 23 16 20 14 14 14 Z"
+                  fill="url(#undoBodyGrad)" stroke="#7c2d12" stroke-width="0.6" stroke-linejoin="round"/>
+          </svg>
+          <span class="action-label">Hoàn tác</span>
+        </button>
+        <div class="action-trash" id="trashBin">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/>
+          </svg>
+          <span class="action-label">Xóa</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <span class="footer-item">🎓 <b>Ý tưởng &amp; thiết kế:</b> GV <b>Nông Văn Hùng</b></span>
+  <span class="sep"></span>
+  <span class="footer-item">🏫 Trường THCS Đăk Ơ</span>
+  <span class="sep"></span>
+  <span class="footer-item">📚 Tổ: KHTN — Công Nghệ</span>
+  <span class="sep"></span>
+  <span class="footer-badge">📅 Năm học 2026 — 2027</span>
+</footer>
+
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <h3><span class="icon">💾</span> Lưu sản phẩm</h3>
+    <label><span>Tên sơ đồ <em>*</em></span><input id="inpDiagramName" placeholder="VD: Mạch cầu thang" maxlength="60" autocomplete="off"></label>
+    <label><span>Tên học sinh</span><input id="inpStudentName" placeholder="VD: Nguyễn Văn A" maxlength="40" autocomplete="off"></label>
+    <label><span>Lớp</span><input id="inpClass" placeholder="VD: 9A1" maxlength="20" autocomplete="off"></label>
+    <div class="modal-actions">
+      <button id="btnSaveCancel">Hủy</button>
+      <button class="primary" id="btnSaveConfirm">💾 Lưu ảnh</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   ĐỊNH NGHĨA LINH KIỆN (SVG chuẩn SGK)
+   ============================================================ */
+const BLUE = '#00AEEF';
+const BLUE_DARK = '#0090C4';
+const GREEN_LIVE = '#22c55e';
+const GREEN_SW = '#16a34a';
+const ORANGE_SW = '#ea580c';
+const PURPLE_SW = '#a855f7';
+const BLACK_SW = '#1e293b';
+
+const DEFS = {
+  source: {
+    name: 'Nguồn A–0', w: 130, h: 90,
+    terms: [
+      { id:'0', x:130, y:30, color:'#1e293b' },
+      { id:'A', x:130, y:60, color:'#dc2626' }
+    ],
+    svg: () => `
+      <svg viewBox="0 0 130 90" preserveAspectRatio="xMidYMid meet">
+        <rect x="6" y="14" width="94" height="62" rx="10" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+        <text x="53" y="40" text-anchor="middle" fill="#334155" font-size="10.5" font-weight="700" font-family="Segoe UI">NGUỒN</text>
+        <text x="53" y="64" text-anchor="middle" fill="#d97706" font-size="20" font-weight="800" font-family="Segoe UI">220V</text>
+        <line x1="100" y1="30" x2="130" y2="30" stroke="#1e293b" stroke-width="3"/>
+        <text x="110" y="26" fill="#1e293b" font-size="12" font-weight="800" font-family="Segoe UI">0</text>
+        <line x1="100" y1="60" x2="130" y2="60" stroke="#dc2626" stroke-width="3"/>
+        <text x="110" y="76" fill="#dc2626" font-size="12" font-weight="800" font-family="Segoe UI">A</text>
+      </svg>`
+  },
+  fuse: {
+    name: 'Cầu chì', w: 92, h: 46,
+    terms: [{ id:'t1', x:0, y:23, color:'#475569' },{ id:'t2', x:92, y:23, color:'#475569' }],
+    svg: (c) => {
+      const blown = !!c.blown;
+      return `
+      <svg viewBox="0 0 92 46" preserveAspectRatio="xMidYMid meet">
+        <line x1="0" y1="23" x2="18" y2="23" stroke="${BLUE}" stroke-width="2.4" stroke-linecap="round"/>
+        <line x1="74" y1="23" x2="92" y2="23" stroke="${BLUE}" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="18" cy="23" r="2.5" fill="${BLUE}"/>
+        <circle cx="74" cy="23" r="2.5" fill="${BLUE}"/>
+        <rect x="18" y="9" width="56" height="28" rx="4" fill="#ffffff"
+              stroke="${blown?'#dc2626':BLUE_DARK}" stroke-width="2"/>
+        ${blown
+          ? `<line x1="18" y1="23" x2="36" y2="23" stroke="#dc2626" stroke-width="2.4" stroke-linecap="round"/>
+             <line x1="56" y1="23" x2="74" y2="23" stroke="#dc2626" stroke-width="2.4" stroke-linecap="round"/>
+             <path d="M37 18 L42 23 L37 28" stroke="#dc2626" stroke-width="2" fill="none" stroke-linecap="round"/>
+             <path d="M55 18 L50 23 L55 28" stroke="#dc2626" stroke-width="2" fill="none" stroke-linecap="round"/>`
+          : `<line x1="18" y1="23" x2="74" y2="23" stroke="#dc2626" stroke-width="2.4" stroke-linecap="round"/>`}
+        <text x="46" y="43" text-anchor="middle" font-size="7.5" font-weight="700"
+              fill="${blown?'#dc2626':'#94a3b8'}" font-family="Segoe UI">${blown?'ĐỨT':'CẦU CHÌ'}</text>
+      </svg>`;
+    }
+  },
+  breaker2: {
+    name: 'Cầu dao', w: 110, h: 100,
+    terms: [
+      {id:'in1', x:0,   y:35, color:'#475569'},
+      {id:'in2', x:0,   y:65, color:'#475569'},
+      {id:'out1',x:110, y:35, color:'#475569'},
+      {id:'out2',x:110, y:65, color:'#475569'}
+    ],
+    svg: (c) => `
+      <svg viewBox="0 0 110 100" preserveAspectRatio="xMidYMid meet">
+        <line x1="0" y1="35" x2="20" y2="35" stroke="${BLUE}" stroke-width="2.4"/>
+        <line x1="0" y1="65" x2="20" y2="65" stroke="${BLUE}" stroke-width="2.4"/>
+        <line x1="90" y1="35" x2="110" y2="35" stroke="${BLUE}" stroke-width="2.4"/>
+        <line x1="90" y1="65" x2="110" y2="65" stroke="${BLUE}" stroke-width="2.4"/>
+        <circle cx="20" cy="35" r="4" fill="${BLUE}"/><circle cx="20" cy="65" r="4" fill="${BLUE}"/>
+        <circle cx="90" cy="35" r="4" fill="${BLUE}"/><circle cx="90" cy="65" r="4" fill="${BLUE}"/>
+        <line x1="55" y1="16" x2="55" y2="84" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="3,3"/>
+        ${c.closed
+          ? `<line x1="20" y1="35" x2="90" y2="35" stroke="${BLUE_DARK}" stroke-width="4" stroke-linecap="round"/>
+             <line x1="20" y1="65" x2="90" y2="65" stroke="${BLUE_DARK}" stroke-width="4" stroke-linecap="round"/>`
+          : `<line x1="20" y1="35" x2="78" y2="14" stroke="${BLUE_DARK}" stroke-width="4" stroke-linecap="round"/>
+             <line x1="20" y1="65" x2="78" y2="44" stroke="${BLUE_DARK}" stroke-width="4" stroke-linecap="round"/>`}
+        <text x="55" y="96" text-anchor="middle" font-size="8" font-weight="700"
+              fill="${c.closed?'#16a34a':'#dc2626'}" font-family="Segoe UI">${c.closed?'ĐÓNG':'MỞ'}</text>
+      </svg>`
+  },
+  sw1: {
+    name: 'Công tắc 2 cực', w: 100, h: 84,
+    terms: [{id:'t1', x:8, y:42, color:'#1e293b'},{id:'t2', x:92, y:42, color:'#1e293b'}],
+    svg: (c) => {
+      const closed = !!c.closed;
+      const cx = 50, cy = 42, r = 30;
+      const dotX = cx - 14, dotY = cy;
+      const ringX = cx + 14, ringY = cy;
+      const ringR = 4.5;
+      const angle = -50 * Math.PI / 180;
+      const leverLen = Math.hypot(ringX - dotX, ringY - dotY);
+      const openEndX = dotX + leverLen * Math.cos(angle);
+      const openEndY = dotY + leverLen * Math.sin(angle);
+      return `
+      <svg viewBox="0 0 100 84" preserveAspectRatio="xMidYMid meet">
+        <line x1="0" y1="42" x2="20" y2="42" stroke="${BLUE}" stroke-width="2.4" stroke-linecap="round"/>
+        <line x1="80" y1="42" x2="100" y2="42" stroke="${BLUE}" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="#ffffff" stroke="${BLUE}" stroke-width="2.6"/>
+        <line x1="20" y1="42" x2="${dotX}" y2="42" stroke="${BLUE}" stroke-width="2.4" stroke-linecap="round"/>
+        <line x1="${ringX}" y1="42" x2="80" y2="42" stroke="${BLUE}" stroke-width="2.4" stroke-linecap="round"/>
+        ${closed ? `
+          <line x1="${dotX}" y1="${dotY}" x2="${ringX}" y2="${ringY}" stroke="${BLUE_DARK}" stroke-width="3" stroke-linecap="round"/>
+          <path d="M 8 42 L ${dotX} 42 L ${ringX} 42 L 92 42" fill="none" stroke="${GREEN_LIVE}" stroke-width="2.6" stroke-dasharray="7 5" stroke-linecap="round">
+            <animate attributeName="stroke-dashoffset" from="0" to="-24" dur="0.7s" repeatCount="indefinite"/>
+          </path>
+        ` : `
+          <line x1="${dotX}" y1="${dotY}" x2="${openEndX}" y2="${openEndY}" stroke="${BLUE_DARK}" stroke-width="3" stroke-linecap="round"/>
+        `}
+        <circle cx="${dotX}" cy="${dotY}" r="3.5" fill="${BLUE}"/>
+        <circle cx="${ringX}" cy="${ringY}" r="${ringR}" fill="#ffffff" stroke="${BLUE}" stroke-width="2"/>
+      </svg>`;
+    }
+  },
+  sw3: {
+    name: 'Công tắc 3 cực', w: 130, h: 100,
+    terms: [
+      { id:'com', x:25, y:50, color:'#1e293b' },
+      { id:'t1',  x:91, y:19, color:'#ea580c' },
+      { id:'t2',  x:91, y:81, color:'#ea580c' }
+    ],
+    svg: (c) => {
+      const st = (c.state3 === 2) ? 2 : 1;
+      const cx = 65, cy = 50, R = 30;
+      const R23 = 20, R43 = 40;
+      const a1 = -50 * Math.PI / 180;
+      const a2 = 50 * Math.PI / 180;
+      const comOut = { x: cx - R43, y: cy };
+      const comIn = { x: cx - R23, y: cy };
+      const t1Out = { x: cx + R43*Math.cos(a1), y: cy + R43*Math.sin(a1) };
+      const t1In = { x: cx + R23*Math.cos(a1), y: cy + R23*Math.sin(a1) };
+      const t2Out = { x: cx + R43*Math.cos(a2), y: cy + R43*Math.sin(a2) };
+      const t2In = { x: cx + R23*Math.cos(a2), y: cy + R23*Math.sin(a2) };
+      return `
+      <svg viewBox="0 0 130 100" preserveAspectRatio="xMidYMid meet">
+        <circle cx="${cx}" cy="${cy}" r="${R}" fill="#ffffff" stroke="${GREEN_SW}" stroke-width="2.6"/>
+        <line x1="${comOut.x}" y1="${comOut.y}" x2="${comIn.x}" y2="${comIn.y}" stroke="${BLACK_SW}" stroke-width="4.5" stroke-linecap="round"/>
+        <line x1="${t1Out.x}" y1="${t1Out.y}" x2="${t1In.x}" y2="${t1In.y}" stroke="${ORANGE_SW}" stroke-width="4.5" stroke-linecap="round"/>
+        <line x1="${t2Out.x}" y1="${t2Out.y}" x2="${t2In.x}" y2="${t2In.y}" stroke="${ORANGE_SW}" stroke-width="4.5" stroke-linecap="round"/>
+        ${st === 1
+          ? `<line x1="${comIn.x}" y1="${comIn.y}" x2="${t1In.x}" y2="${t1In.y}" stroke="${PURPLE_SW}" stroke-width="5" stroke-linecap="round"/>`
+          : `<line x1="${comIn.x}" y1="${comIn.y}" x2="${t2In.x}" y2="${t2In.y}" stroke="${PURPLE_SW}" stroke-width="5" stroke-linecap="round"/>`}
+        <circle cx="${comIn.x}" cy="${comIn.y}" r="5" fill="${GREEN_SW}"/>
+        <circle cx="${t1In.x}" cy="${t1In.y}" r="4.5" fill="#ffffff" stroke="${GREEN_SW}" stroke-width="2.4"/>
+        <circle cx="${t2In.x}" cy="${t2In.y}" r="4.5" fill="#ffffff" stroke="${GREEN_SW}" stroke-width="2.4"/>
+        <text x="1" y="46" font-size="7" fill="${BLACK_SW}" font-family="Segoe UI" font-weight="800">COM</text>
+        <text x="116" y="17" font-size="9" fill="${ORANGE_SW}" font-family="Segoe UI" font-weight="800">1</text>
+        <text x="116" y="88" font-size="9" fill="${ORANGE_SW}" font-family="Segoe UI" font-weight="800">2</text>
+      </svg>`;
+    }
+  },
+  sw3m: {
+    name: 'Công tắc 3 cực (đảo)', w: 130, h: 100,
+    terms: [
+      { id:'com', x:105, y:50, color:'#1e293b' },
+      { id:'t1',  x:39,  y:19, color:'#ea580c' },
+      { id:'t2',  x:39,  y:81, color:'#ea580c' }
+    ],
+    svg: (c) => {
+      const st = (c.state3 === 2) ? 2 : 1;
+      const cx = 65, cy = 50, R = 30;
+      const R23 = 20, R43 = 40;
+      const a1 = -130 * Math.PI / 180;
+      const a2 = 130 * Math.PI / 180;
+      const comOut = { x: cx + R43, y: cy };
+      const comIn = { x: cx + R23, y: cy };
+      const t1Out = { x: cx + R43*Math.cos(a1), y: cy + R43*Math.sin(a1) };
+      const t1In = { x: cx + R23*Math.cos(a1), y: cy + R23*Math.sin(a1) };
+      const t2Out = { x: cx + R43*Math.cos(a2), y: cy + R43*Math.sin(a2) };
+      const t2In = { x: cx + R23*Math.cos(a2), y: cy + R23*Math.sin(a2) };
+      return `
+      <svg viewBox="0 0 130 100" preserveAspectRatio="xMidYMid meet">
+        <circle cx="${cx}" cy="${cy}" r="${R}" fill="#ffffff" stroke="${GREEN_SW}" stroke-width="2.6"/>
+        <line x1="${comOut.x}" y1="${comOut.y}" x2="${comIn.x}" y2="${comIn.y}" stroke="${BLACK_SW}" stroke-width="4.5" stroke-linecap="round"/>
+        <line x1="${t1Out.x}" y1="${t1Out.y}" x2="${t1In.x}" y2="${t1In.y}" stroke="${ORANGE_SW}" stroke-width="4.5" stroke-linecap="round"/>
+        <line x1="${t2Out.x}" y1="${t2Out.y}" x2="${t2In.x}" y2="${t2In.y}" stroke="${ORANGE_SW}" stroke-width="4.5" stroke-linecap="round"/>
+        ${st === 1
+          ? `<line x1="${comIn.x}" y1="${comIn.y}" x2="${t1In.x}" y2="${t1In.y}" stroke="${PURPLE_SW}" stroke-width="5" stroke-linecap="round"/>`
+          : `<line x1="${comIn.x}" y1="${comIn.y}" x2="${t2In.x}" y2="${t2In.y}" stroke="${PURPLE_SW}" stroke-width="5" stroke-linecap="round"/>`}
+        <circle cx="${comIn.x}" cy="${comIn.y}" r="5" fill="${GREEN_SW}"/>
+        <circle cx="${t1In.x}" cy="${t1In.y}" r="4.5" fill="#ffffff" stroke="${GREEN_SW}" stroke-width="2.4"/>
+        <circle cx="${t2In.x}" cy="${t2In.y}" r="4.5" fill="#ffffff" stroke="${GREEN_SW}" stroke-width="2.4"/>
+        <text x="128" y="46" font-size="7" fill="${BLACK_SW}" font-family="Segoe UI" font-weight="800" text-anchor="end">COM</text>
+        <text x="4" y="17" font-size="9" fill="${ORANGE_SW}" font-family="Segoe UI" font-weight="800">1</text>
+        <text x="4" y="88" font-size="9" fill="${ORANGE_SW}" font-family="Segoe UI" font-weight="800">2</text>
+      </svg>`;
+    }
+  },
+  socket: {
+    name: 'Ổ cắm 2 cực', w: 100, h: 84,
+    terms: [{id:'L', x:8, y:42, color:'#dc2626'},{id:'N', x:92, y:42, color:'#1e293b'}],
+    svg: (c) => {
+      const cx = 50, cy = 42, r = 30;
+      const on = !!c.on;
+      return `
+      <svg viewBox="0 0 100 84" preserveAspectRatio="xMidYMid meet">
+        ${on?`<circle cx="${cx}" cy="${cy}" r="${r+4}" fill="#fde047" opacity="0.35"/>`:''}
+        <line x1="0" y1="42" x2="20" y2="42" stroke="${BLUE}" stroke-width="2.4" stroke-linecap="round"/>
+        <line x1="80" y1="42" x2="100" y2="42" stroke="${BLUE}" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="#ffffff" stroke="${on?'#f59e0b':BLUE}" stroke-width="2.6"/>
+        <circle cx="${cx-13}" cy="${cy}" r="6" fill="none" stroke="${BLUE}" stroke-width="2.4"/>
+        <circle cx="${cx+13}" cy="${cy}" r="6" fill="none" stroke="${BLUE}" stroke-width="2.4"/>
+        <line x1="${cx-r}" y1="${cy}" x2="${cx-19}" y2="${cy}" stroke="${BLUE}" stroke-width="2"/>
+        <line x1="${cx+19}" y1="${cy}" x2="${cx+r}" y2="${cy}" stroke="${BLUE}" stroke-width="2"/>
+      </svg>`;
+    }
+  },
+  bulb: {
+    name: 'Bóng đèn', w: 100, h: 84,
+    terms: [{id:'t1', x:8, y:42, color:'#475569'},{id:'t2', x:92, y:42, color:'#475569'}],
+    svg: (c) => {
+      const on = !!c.on;
+      const cx = 50, cy = 42, r = 30;
+      const k = r / Math.SQRT2;
+      const x1 = cx - k, y1 = cy - k;
+      const x2 = cx + k, y2 = cy + k;
+      const x3 = cx + k, y3 = cy - k;
+      const x4 = cx - k, y4 = cy + k;
+      const sc = on ? '#f59e0b' : BLUE;
+      return `
+      <svg viewBox="0 0 100 84" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <radialGradient id="bulbGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fde047" stop-opacity="0.75"/>
+            <stop offset="60%" stop-color="#fbbf24" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        ${on?`
+          <circle cx="${cx}" cy="${cy}" r="${r+14}" fill="url(#bulbGlow)">
+            <animate attributeName="r" values="${r+12};${r+18};${r+12}" dur="1.5s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite"/>
+          </circle>
+        `:''}
+        <line x1="0" y1="42" x2="20" y2="42" stroke="${BLUE}" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="80" y1="42" x2="100" y2="42" stroke="${BLUE}" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="${on?'#fffef2':'#ffffff'}" stroke="${sc}" stroke-width="2.6"/>
+        <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${sc}" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="${x3}" y1="${y3}" x2="${x4}" y2="${y4}" stroke="${sc}" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>`;
+    }
+  },
+  board: {
+    name: 'Bảng điện', w: 340, h: 240,
+    terms: [],
+    svg: () => `
+      <svg viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet">
+        <rect x="4" y="4" width="92" height="42" rx="6" fill="rgba(168,85,247,0.1)"
+              stroke="#a855f7" stroke-width="2" stroke-dasharray="5 4"/>
+      </svg>`
+  }
+};
+
+/* ============================================================
+   TRẠNG THÁI & THAM CHIẾU DOM
+   ============================================================ */
+const BOARD_W = 1060, BOARD_H = 640;
+const state = {
+  components: [], wires: [], virtualTerms: {},
+  history: [], maxHistory: 80,
+  powered: false, audioEnabled: true
+};
+let uid = 1, wiringState = null;
+
+const boardEl = document.getElementById('board');
+const wiresEl = document.getElementById('wires');
+const previewEl = document.getElementById('previewSvg');
+const statusEl = document.getElementById('status');
+const hintEl = document.getElementById('boardHint');
+const wiringTipEl = document.getElementById('wiringTip');
+const undoBtn = document.getElementById('btnUndo');
+const trashBinEl = document.getElementById('trashBin');
+const toastEl = document.getElementById('toast');
+const headerEl = document.getElementById('appHeader');
+const stageEl = document.getElementById('stage');
+
+const key = (cid, tid) => cid + ':' + tid;
+const snap = v => Math.round(v/10)*10;
+const VCOMP = '__v__';
+
+function showToast(msg, ms = 2200) {
+  if (!msg) { toastEl.classList.remove('show'); return; }
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastEl._t);
+  toastEl._t = setTimeout(() => toastEl.classList.remove('show'), ms);
+}
+
+/* ============================================================
+   HAMBURGER + AUTO-HIDE HEADER
+   ============================================================ */
+document.getElementById('btnHamburger').addEventListener('click', () => {
+  document.getElementById('palettePanel').classList.toggle('collapsed');
+});
+
+let lastScrollTop = 0, headerHideTimer = null;
+stageEl.addEventListener('scroll', () => {
+  const st = stageEl.scrollTop;
+  if (st > lastScrollTop && st > 50) {
+    headerEl.classList.add('hidden');
+    document.body.classList.add('header-hidden');
+  } else {
+    headerEl.classList.remove('hidden');
+    document.body.classList.remove('header-hidden');
+  }
+  lastScrollTop = st <= 0 ? 0 : st;
+}, { passive: true });
+
+/* Hover mép trên → hiện lại header */
+document.addEventListener('mousemove', (e) => {
+  if (e.clientY < 40 && headerEl.classList.contains('hidden')) {
+    headerEl.classList.remove('hidden');
+    document.body.classList.remove('header-hidden');
+  }
+});
+
+/* ============================================================
+   UNDO
+   ============================================================ */
+function pushHistory() {
+  state.history.push(JSON.stringify({
+    components: state.components, wires: state.wires,
+    virtualTerms: state.virtualTerms, uid
+  }));
+  if (state.history.length > state.maxHistory) state.history.shift();
+  updateUndoBtn();
+}
+function updateUndoBtn() { undoBtn.disabled = state.history.length === 0; }
+function undo() {
+  if (!state.history.length) { setStatus('Không có thao tác để khôi phục.', 'warn'); return; }
+  const data = JSON.parse(state.history.pop());
+  state.components = data.components;
+  state.wires = data.wires;
+  state.virtualTerms = data.virtualTerms;
+  uid = data.uid;
+  cancelWiring();
+  render(); runSim();
+  setStatus('↩️ Đã khôi phục thao tác trước đó.', 'info');
+  speak('Đã khôi phục thao tác trước đó');
+  updateUndoBtn();
+}
+undoBtn.addEventListener('click', undo);
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+  if (e.key === 'Escape' && wiringState) { cancelWiring(); setStatus('Đã hủy nối dây.', 'info'); }
+  if (e.key === 'Enter' && wiringState && wiringState.mousePos) {
+    finishFloating(wiringState.mousePos.x, wiringState.mousePos.y);
+  }
+});
+
+/* ============================================================
+   TRANSFORM
+   ============================================================ */
+function applyTransform(tx, ty, c, d) {
+  const cx = d.w/2, cy = d.h/2;
+  const Px = tx - cx, Py = ty - cy;
+  const sx = c.flipH ? -1 : 1, sy = c.flipV ? -1 : 1;
+  const rad = ((c.rotation || 0) * Math.PI) / 180;
+  const cos = Math.cos(rad), sin = Math.sin(rad);
+  const rx = cos*sx*Px - sin*sy*Py;
+  const ry = sin*sx*Px + cos*sy*Py;
+  return { x: c.x + cx + rx, y: c.y + cy + ry };
+}
+function getTermPos(compId, termId) {
+  if (compId === VCOMP) {
+    const v = state.virtualTerms[termId];
+    return v ? { x: v.x, y: v.y } : null;
+  }
+  const c = state.components.find(x => x.id === compId);
+  if (!c) return null;
+  const d = DEFS[c.type];
+  const t = d.terms.find(x => x.id === termId);
+  if (!t) return null;
+  return applyTransform(t.x, t.y, c, d);
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function makeCompEl(c, interactive = true) {
+  const d = DEFS[c.type];
+  const el = document.createElement('div');
+  el.className = 'comp';
+  el.dataset.id = c.id;
+  el.style.left = c.x + 'px';
+  el.style.top = c.y + 'px';
+
+  if (c.type === 'board') {
+    el.classList.add('type-board');
+    const w = c.w || d.w, h = c.h || d.h;
+    el.style.width = w + 'px';
+    el.style.height = h + 'px';
+    const label = document.createElement('div');
+    label.className = 'board-label';
+    label.textContent = 'Bảng điện';
+    el.appendChild(label);
+    ['nw','ne','sw','se'].forEach(pos => {
+      const handle = document.createElement('div');
+      handle.className = 'resize-handle ' + pos;
+      handle.dataset.handle = pos;
+      handle.dataset.comp = c.id;
+      if (interactive) handle.addEventListener('pointerdown', onResizePointerDown);
+      el.appendChild(handle);
+    });
+    if (interactive) {
+      el.addEventListener('pointerdown', onCompPointerDown);
+      el.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        if (wiringState) { cancelWiring(); return; }
+        showCtxMenu(e.clientX, e.clientY, c.id);
+      });
+    }
+    return el;
+  }
+
+  el.style.width = d.w + 'px';
+  el.style.height = d.h + 'px';
+  const parts = [];
+  if (c.rotation) parts.push(`rotate(${c.rotation}deg)`);
+  if (c.flipH || c.flipV) parts.push(`scale(${c.flipH?-1:1}, ${c.flipV?-1:1})`);
+  if (parts.length) el.style.transform = parts.join(' ');
+
+  el.innerHTML = d.svg(c) + d.terms.map(t =>
+    `<div class="term" data-comp="${c.id}" data-term="${t.id}"
+          style="left:${t.x}px;top:${t.y}px;--tc:${t.color || '#334155'}"></div>`
+  ).join('');
+
+  if (interactive) {
+    el.addEventListener('pointerdown', onCompPointerDown);
+    el.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      if (wiringState) { cancelWiring(); return; }
+      showCtxMenu(e.clientX, e.clientY, c.id);
+    });
+    el.querySelectorAll('.term').forEach(t => {
+      t.addEventListener('pointerdown', e => e.stopPropagation());
+      t.addEventListener('click', e => {
+        e.stopPropagation(); e.preventDefault();
+        handleTermClick(t.dataset.comp, t.dataset.term);
+      });
+      t.addEventListener('contextmenu', e => {
+        e.stopPropagation(); e.preventDefault();
+        if (wiringState) cancelWiring();
+      });
+    });
+  }
+  return el;
+}
+
+function render() {
+  boardEl.querySelectorAll('.comp').forEach(e => e.remove());
+  state.components.forEach(c => boardEl.appendChild(makeCompEl(c)));
+  redrawWires();
+  updateTermHighlight();
+  const realComps = state.components.filter(c => c.type !== 'board');
+  hintEl.style.display = realComps.length ? 'none' : 'flex';
+  boardEl.classList.toggle('wiring', !!wiringState);
+  wiringTipEl.classList.toggle('show', !!wiringState);
+}
+
+/* ============================================================
+   TÍNH ĐƯỜNG DÂY
+   ============================================================ */
+function computeWirePoints(wire) {
+  const start = getTermPos(wire.a.comp, wire.a.term);
+  const end   = getTermPos(wire.b.comp, wire.b.term);
+  if (!start || !end) return null;
+  if (wire.waypoints && wire.waypoints.length > 0)
+    return [start, ...wire.waypoints, end];
+  return [start, end];
+}
+function optimizeWaypoints(wp) {
+  if (!wp || wp.length <= 1) return wp;
+  const out = [];
+  const MIN_DIST = 30;
+  for (let i = 0; i < wp.length; i++) {
+    const p = wp[i];
+    if (out.length === 0) { out.push({ ...p }); continue; }
+    const last = out[out.length - 1];
+    if (Math.hypot(p.x - last.x, p.y - last.y) >= MIN_DIST) out.push({ ...p });
+  }
+  const final = [];
+  for (let i = 0; i < out.length; i++) {
+    if (i === 0 || i === out.length - 1) { final.push(out[i]); continue; }
+    const prev = final[final.length - 1];
+    const curr = out[i];
+    const next = out[i+1];
+    const cross = (curr.x - prev.x) * (next.y - curr.y) - (curr.y - prev.y) * (next.x - curr.x);
+    if (Math.abs(cross) > 500) final.push(curr);
+  }
+  return final;
+}
+function simplifyAndOrthogonalize(pts) {
+  if (!pts || pts.length < 2) return pts;
+  const clean = [pts[0]];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const last = clean[clean.length - 1];
+    const p = pts[i];
+    if (Math.hypot(p.x - last.x, p.y - last.y) >= 18) clean.push(p);
+  }
+  clean.push(pts[pts.length - 1]);
+  const out = [clean[0]];
+  for (let i = 1; i < clean.length; i++) {
+    const prev = out[out.length - 1];
+    const curr = clean[i];
+    const dx = curr.x - prev.x, dy = curr.y - prev.y;
+    if (Math.abs(dx) < 1 || Math.abs(dy) < 1) { out.push(curr); continue; }
+    let lastDir = null;
+    if (out.length >= 2) {
+      const pp = out[out.length - 2];
+      lastDir = Math.abs(prev.x - pp.x) > Math.abs(prev.y - pp.y) ? 'h' : 'v';
+    }
+    let firstHoriz;
+    if (lastDir === 'h') firstHoriz = true;
+    else if (lastDir === 'v') firstHoriz = false;
+    else firstHoriz = Math.abs(dx) >= Math.abs(dy);
+    if (firstHoriz) out.push({ x: curr.x, y: prev.y });
+    else out.push({ x: prev.x, y: curr.y });
+    out.push(curr);
+  }
+  return out;
+}
+function computeRenderPts(w) {
+  const pts = computeWirePoints(w);
+  if (!pts) return null;
+  const hasWP = w.waypoints && w.waypoints.length > 0;
+  return hasWP ? simplifyAndOrthogonalize(pts) : pts;
+}
+function pathString(points) {
+  if (!points || points.length < 2) return '';
+  if (points.length === 2) return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+  const RR = 10;
+  let d = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 1; i < points.length - 1; i++) {
+    const prev = points[i-1], curr = points[i], next = points[i+1];
+    const v1 = { x: curr.x-prev.x, y: curr.y-prev.y };
+    const v2 = { x: next.x-curr.x, y: next.y-curr.y };
+    const l1 = Math.hypot(v1.x, v1.y), l2 = Math.hypot(v2.x, v2.y);
+    if (l1 < 1 || l2 < 1) { d += ` L ${curr.x} ${curr.y}`; continue; }
+    const r = Math.min(RR, l1/2, l2/2);
+    const p1 = { x: curr.x - v1.x/l1*r, y: curr.y - v1.y/l1*r };
+    const p2 = { x: curr.x + v2.x/l2*r, y: curr.y + v2.y/l2*r };
+    d += ` L ${p1.x} ${p1.y} Q ${curr.x} ${curr.y} ${p2.x} ${p2.y}`;
+  }
+  const last = points[points.length-1];
+  d += ` L ${last.x} ${last.y}`;
+  return d;
+}
+
+/* ============================================================
+   MÀU CỰC — BFS
+   ============================================================ */
+function computeTermColors() {
+  const colors = {};
+  const src = state.components.find(c => c.type === 'source');
+  if (!src) return colors;
+  const termGraph = {};
+  state.wires.forEach(w => {
+    const k1 = key(w.a.comp, w.a.term), k2 = key(w.b.comp, w.b.term);
+    if (!termGraph[k1]) termGraph[k1] = [];
+    if (!termGraph[k2]) termGraph[k2] = [];
+    termGraph[k1].push(k2); termGraph[k2].push(k1);
+  });
+  const deviceEdges = {};
+  const addDE = (a, b) => {
+    if (!deviceEdges[a]) deviceEdges[a] = [];
+    if (!deviceEdges[b]) deviceEdges[b] = [];
+    deviceEdges[a].push(b); deviceEdges[b].push(a);
+  };
+  state.components.forEach(c => {
+    if (c.type === 'fuse' && !c.blown) addDE(key(c.id,'t1'), key(c.id,'t2'));
+    if (c.type === 'breaker2' && c.closed) {
+      addDE(key(c.id,'in1'), key(c.id,'out1'));
+      addDE(key(c.id,'in2'), key(c.id,'out2'));
+    }
+    if (c.type === 'sw1' && c.closed) addDE(key(c.id,'t1'), key(c.id,'t2'));
+    if (c.type === 'sw3' || c.type === 'sw3m') {
+      const trav = (c.state3 === 2) ? 't2' : 't1';
+      addDE(key(c.id,'com'), key(c.id, trav));
+    }
+  });
+  const bfs = (startKey, color) => {
+    const q = [startKey], seen = new Set([startKey]);
+    while (q.length) {
+      const n = q.shift();
+      if (!colors[n]) colors[n] = color;
+      [...(termGraph[n]||[]), ...(deviceEdges[n]||[])].forEach(m => {
+        if (!seen.has(m)) { seen.add(m); q.push(m); }
+      });
+    }
+  };
+  bfs(key(src.id, 'A'), 'red');
+  bfs(key(src.id, '0'), 'black');
+  return colors;
+}
+function getWireColorClass(w, termColors) {
+  const cA = termColors[key(w.a.comp, w.a.term)];
+  const cB = termColors[key(w.b.comp, w.b.term)];
+  if (cA === 'red' || cB === 'red') return 'phase';
+  if (cA === 'black' || cB === 'black') return 'neutral';
+  return 'unknown';
+}
+function bfsDistance(startNet, edges) {
+  const dist = { [startNet]: 0 };
+  const q = [startNet];
+  const adj = {};
+  edges.forEach(e => {
+    if (e.load) return;
+    if (!adj[e.a]) adj[e.a] = [];
+    if (!adj[e.b]) adj[e.b] = [];
+    adj[e.a].push(e.b); adj[e.b].push(e.a);
+  });
+  while (q.length) {
+    const n = q.shift();
+    (adj[n]||[]).forEach(m => {
+      if (dist[m] === undefined) { dist[m] = dist[n] + 1; q.push(m); }
+    });
+  }
+  return dist;
+}
+
+/* ============================================================
+   VẼ DÂY
+   ============================================================ */
+function redrawWires() {
+  const termColors = computeTermColors();
+  let html = '';
+  state.wires.forEach(w => {
+    let pts = w._computed || computeRenderPts(w);
+    if (!pts || pts.length < 2) return;
+    const cc = getWireColorClass(w, termColors);
+    let renderPts = pts;
+    if (cc === 'phase' && w._distA_a !== undefined && w._distA_a > w._distA_b) {
+      renderPts = [...pts].reverse();
+    } else if (cc === 'neutral' && w._dist0_a !== undefined && w._dist0_a < w._dist0_b) {
+      renderPts = [...pts].reverse();
+    }
+    const dstr = pathString(renderPts);
+    const isLive = w.live && state.powered;
+    html += `<path class="wire-base ${cc}" d="${dstr}"/>`;
+    if (isLive) html += `<path class="wire-live ${cc}" d="${dstr}"/>`;
+    html += `<path class="wire-hit" d="${dstr}" data-wire="${w.id}"/>`;
+  });
+  const termCount = {};
+  state.wires.forEach(w => {
+    const k1 = key(w.a.comp, w.a.term), k2 = key(w.b.comp, w.b.term);
+    termCount[k1] = (termCount[k1]||0) + 1;
+    termCount[k2] = (termCount[k2]||0) + 1;
+  });
+  state.components.forEach(c => {
+    DEFS[c.type].terms.forEach(t => {
+      if (termCount[key(c.id, t.id)] >= 2) {
+        const pos = getTermPos(c.id, t.id);
+        if (pos) html += `<circle class="junction" cx="${pos.x}" cy="${pos.y}" r="6"/>`;
+      }
+    });
+  });
+  Object.keys(state.virtualTerms).forEach(vid => {
+    const v = state.virtualTerms[vid];
+    const cnt = termCount[key(VCOMP, vid)] || 0;
+    if (cnt >= 2) {
+      html += `<circle class="junction" cx="${v.x}" cy="${v.y}" r="6.5"/>`;
+    } else if (cnt === 1) {
+      html += `<circle class="dead-end" data-vterm="${vid}" cx="${v.x}" cy="${v.y}" r="9"/>`;
+    }
+  });
+  state.wires.forEach(w => {
+    const pts = w._computed || computeRenderPts(w);
+    if (!pts || pts.length <= 2) return;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const p = pts[i];
+      html += `<circle class="waypoint" data-wire="${w.id}" data-wpi="${i}" cx="${p.x}" cy="${p.y}" r="9"/>`;
+    }
+  });
+  wiresEl.innerHTML = html;
+}
+function updateTermHighlight() {
+  document.querySelectorAll('.term').forEach(t => {
+    const on = wiringState && t.dataset.comp === wiringState.startComp && t.dataset.term === wiringState.startTerm;
+    t.classList.toggle('start-term', !!on);
+  });
+}
+
+/* ============================================================
+   PREVIEW
+   ============================================================ */
+function updatePreview() {
+  if (!wiringState) { previewEl.innerHTML = ''; return; }
+  const pts = [...wiringState.points];
+  if (wiringState.mousePos) pts.push(wiringState.mousePos);
+  if (pts.length < 2) { previewEl.innerHTML = ''; return; }
+  const orthoPts = simplifyAndOrthogonalize(pts);
+  const dstr = pathString(orthoPts);
+  const color = wiringState.color === 'red' ? '#dc2626'
+              : wiringState.color === 'black' ? '#1e293b' : '#94a3b8';
+  let svg = `<path class="preview-path" d="${dstr}" stroke="${color}"/>`;
+  wiringState.points.forEach((p, i) => {
+    if (i === 0) svg += `<circle class="preview-start" cx="${p.x}" cy="${p.y}" r="12"/>`;
+    else svg += `<circle class="preview-wp" cx="${p.x}" cy="${p.y}" r="9"/>`;
+  });
+  if (wiringState.mousePos) {
+    const mp = wiringState.mousePos;
+    svg += `<circle class="preview-end" cx="${mp.x}" cy="${mp.y}" r="11"/>`;
+  }
+  previewEl.innerHTML = svg;
+}
+
+/* ============================================================
+   T-JUNCTION
+   ============================================================ */
+function findClosestSeg(pts, px, py) {
+  let best = { dist: Infinity, idx: 0, t: 0, point: null };
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i+1];
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const l2 = dx*dx + dy*dy;
+    let t = l2 > 0 ? ((px-a.x)*dx + (py-a.y)*dy) / l2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    const cx = a.x + t*dx, cy = a.y + t*dy;
+    const d = Math.hypot(px - cx, py - cy);
+    if (d < best.dist) best = { dist: d, idx: i, t, point: { x: cx, y: cy } };
+  }
+  return best;
+}
+function splitWireAt(wireId, px, py) {
+  const wire = state.wires.find(w => w.id === wireId);
+  if (!wire) return null;
+  const pts = computeWirePoints(wire);
+  if (!pts || pts.length < 2) return null;
+  const best = findClosestSeg(pts, px, py);
+  if (!best.point || best.dist > 30) return null;
+  if (best.idx === 0 && best.t < 0.08) return null;
+  if (best.idx === pts.length - 2 && best.t > 0.92) return null;
+  const vId = 'v' + (uid++);
+  state.virtualTerms[vId] = { x: Math.round(best.point.x), y: Math.round(best.point.y) };
+  const origA = { ...wire.a }, origB = { ...wire.b };
+  const leftWP = []; for (let i = 1; i <= best.idx; i++) leftWP.push({ ...pts[i] });
+  const rightWP = []; for (let i = best.idx + 1; i <= pts.length - 2; i++) rightWP.push({ ...pts[i] });
+  const idx = state.wires.indexOf(wire);
+  state.wires.splice(idx, 1,
+    { id: 'w'+(uid++), a: origA, b: { comp: VCOMP, term: vId }, waypoints: leftWP, live: false },
+    { id: 'w'+(uid++), a: { comp: VCOMP, term: vId }, b: origB, waypoints: rightWP, live: false }
+  );
+  return vId;
+}
+function cleanupVirtualTerms() {
+  const used = new Set();
+  state.wires.forEach(w => {
+    if (w.a.comp === VCOMP) used.add(w.a.term);
+    if (w.b.comp === VCOMP) used.add(w.b.term);
+  });
+  Object.keys(state.virtualTerms).forEach(vid => { if (!used.has(vid)) delete state.virtualTerms[vid]; });
+}
+
+/* ============================================================
+   CLICK CỰC
+   ============================================================ */
+function handleTermClick(comp, term) {
+  if (!wiringState) {
+    const pos = getTermPos(comp, term);
+    if (!pos) return;
+    const colors = computeTermColors();
+    const color = colors[key(comp, term)] || 'unknown';
+    wiringState = { startComp: comp, startTerm: term, points: [pos], color, mousePos: null };
+    const cn = color === 'red' ? 'ĐỎ (pha A)'
+             : color === 'black' ? 'ĐEN (trung tính 0)' : 'XÁM (chưa xác định)';
+    setStatus(`🔌 Bắt đầu vẽ dây màu ${cn}.`, 'info');
+    render(); updatePreview(); return;
+  }
+  finalizeWire(comp, term);
+}
+function finalizeWire(endComp, endTerm) {
+  if (!wiringState) return;
+  if (wiringState.startComp === endComp && wiringState.startTerm === endTerm) {
+    cancelWiring(); setStatus('Đã hủy nối dây.', 'info'); return;
+  }
+  const dup = state.wires.some(w =>
+    (w.a.comp === wiringState.startComp && w.a.term === wiringState.startTerm &&
+     w.b.comp === endComp && w.b.term === endTerm) ||
+    (w.b.comp === wiringState.startComp && w.b.term === wiringState.startTerm &&
+     w.a.comp === endComp && w.a.term === endTerm));
+  if (dup) { setStatus('⚠️ Hai cực này đã có dây nối rồi.', 'warn'); cancelWiring(); return; }
+  pushHistory();
+  state.wires.push({
+    id: 'w' + (uid++),
+    a: { comp: wiringState.startComp, term: wiringState.startTerm },
+    b: { comp: endComp, term: endTerm },
+    waypoints: optimizeWaypoints(wiringState.points.slice(1)),
+    live: false
+  });
+  setStatus('✅ Đã nối dây thành công.', 'ok');
+  wiringState = null; previewEl.innerHTML = '';
+  render(); runSim();
+}
+function finishFloating(x, y) {
+  if (!wiringState) return;
+  const vId = 'p' + (uid++);
+  state.virtualTerms[vId] = { x, y };
+  pushHistory();
+  state.wires.push({
+    id: 'w' + (uid++),
+    a: { comp: wiringState.startComp, term: wiringState.startTerm },
+    b: { comp: VCOMP, term: vId },
+    waypoints: optimizeWaypoints(wiringState.points.slice(1)),
+    live: false
+  });
+  setStatus('✅ Đã kết thúc dây tại điểm tự do (○).', 'ok');
+  wiringState = null; previewEl.innerHTML = '';
+  render(); runSim();
+}
+function cancelWiring() { wiringState = null; previewEl.innerHTML = ''; render(); }
+
+/* ============================================================
+   BOARD EVENTS
+   ============================================================ */
+boardEl.addEventListener('pointermove', e => {
+  if (!wiringState) return;
+  const r = boardEl.getBoundingClientRect();
+  const x = snap(e.clientX - r.left), y = snap(e.clientY - r.top);
+  wiringState.mousePos = { x: Math.max(0, Math.min(BOARD_W, x)), y: Math.max(0, Math.min(BOARD_H, y)) };
+  updatePreview();
+});
+boardEl.addEventListener('pointerleave', () => {
+  if (wiringState) { wiringState.mousePos = null; updatePreview(); }
+});
+boardEl.addEventListener('pointerup', e => {
+  if (!wiringState) return;
+  if (e.target.closest('.term')) return;
+  if (e.target.closest('.board-actions')) return;
+  if (e.target.closest('.comp')) { cancelWiring(); setStatus('Đã hủy nối dây.', 'info'); return; }
+  const wireHit = e.target.closest('[data-wire]');
+  if (wireHit) {
+    const r = boardEl.getBoundingClientRect();
+    const px = e.clientX - r.left, py = e.clientY - r.top;
+    pushHistory();
+    const vId = splitWireAt(wireHit.dataset.wire, px, py);
+    if (vId) {
+      state.wires.push({
+        id: 'w' + (uid++),
+        a: { comp: wiringState.startComp, term: wiringState.startTerm },
+        b: { comp: VCOMP, term: vId },
+        waypoints: optimizeWaypoints(wiringState.points.slice(1)),
+        live: false
+      });
+      setStatus('✅ Đã tạo ngã ba.', 'ok');
+      wiringState = null; previewEl.innerHTML = '';
+      render(); runSim();
+    } else {
+      state.history.pop();
+      setStatus('⚠️ Không thể tạo ngã ba tại vị trí này.', 'warn');
+    }
+    return;
+  }
+  const r = boardEl.getBoundingClientRect();
+  const x = snap(e.clientX - r.left), y = snap(e.clientY - r.top);
+  const cx = Math.max(0, Math.min(BOARD_W, x));
+  const cy = Math.max(0, Math.min(BOARD_H, y));
+  const last = wiringState.points[wiringState.points.length - 1];
+  if (Math.hypot(cx - last.x, cy - last.y) < 12) return;
+  wiringState.points.push({ x: cx, y: cy });
+  updatePreview();
+  setStatus('📍 Đã thêm góc vuông.', 'info');
+});
+let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
+boardEl.addEventListener('pointerup', e => {
+  if (!wiringState) return;
+  if (e.pointerType !== 'touch') return;
+  if (e.target.closest('.term')) return;
+  if (e.target.closest('.comp')) return;
+  if (e.target.closest('[data-wire]')) return;
+  if (e.target.closest('.board-actions')) return;
+  const now = Date.now();
+  const dt = now - lastTapTime;
+  const dist = Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY);
+  if (dt < 400 && dist < 30) {
+    e.preventDefault();
+    const r = boardEl.getBoundingClientRect();
+    const cx = Math.max(0, Math.min(BOARD_W, snap(e.clientX - r.left)));
+    const cy = Math.max(0, Math.min(BOARD_H, snap(e.clientY - r.top)));
+    const last = wiringState.points[wiringState.points.length - 1];
+    if (wiringState.points.length > 1 && Math.abs(last.x - cx) < 8 && Math.abs(last.y - cy) < 8) {
+      wiringState.points.pop();
+    }
+    finishFloating(cx, cy);
+    lastTapTime = 0; return;
+  }
+  lastTapTime = now; lastTapX = e.clientX; lastTapY = e.clientY;
+}, true);
+boardEl.addEventListener('dblclick', e => {
+  if (!wiringState) return;
+  if (e.target.closest('.term')) return;
+  if (e.target.closest('.comp')) return;
+  if (e.target.closest('[data-wire]')) return;
+  if (e.target.closest('.board-actions')) return;
+  e.preventDefault();
+  const r = boardEl.getBoundingClientRect();
+  const cx = Math.max(0, Math.min(BOARD_W, snap(e.clientX - r.left)));
+  const cy = Math.max(0, Math.min(BOARD_H, snap(e.clientY - r.top)));
+  const last = wiringState.points[wiringState.points.length - 1];
+  if (wiringState.points.length > 1 && Math.abs(last.x - cx) < 6 && Math.abs(last.y - cy) < 6) {
+    wiringState.points.pop();
+  }
+  finishFloating(cx, cy);
+});
+boardEl.addEventListener('contextmenu', e => {
+  if (wiringState) { e.preventDefault(); cancelWiring(); setStatus('Đã hủy nối dây.', 'info'); }
+});
+document.addEventListener('pointerdown', e => {
+  if (wiringState && !boardEl.contains(e.target) && !e.target.closest('.board-actions')) {
+    cancelWiring(); setStatus('Đã hủy nối dây.', 'info');
+  }
+});
+
+/* ============================================================
+   KÉO WAYPOINT + ĐẦU HỞ
+   ============================================================ */
+let draggingWP = null, draggingDeadEnd = null;
+wiresEl.addEventListener('pointerdown', e => {
+  const de = e.target.closest('.dead-end');
+  if (de) {
+    e.preventDefault(); e.stopPropagation();
+    const vid = de.dataset.vterm;
+    if (!state.virtualTerms[vid]) return;
+    pushHistory();
+    draggingDeadEnd = { vid, moved: false };
+    const move = ev => {
+      if (!draggingDeadEnd) return;
+      draggingDeadEnd.moved = true;
+      const r = boardEl.getBoundingClientRect();
+      const x = Math.max(0, Math.min(BOARD_W, snap(ev.clientX - r.left)));
+      const y = Math.max(0, Math.min(BOARD_H, snap(ev.clientY - r.top)));
+      state.virtualTerms[vid] = { x, y };
+      redrawWires();
+    };
+    const up = () => {
+      if (draggingDeadEnd && !draggingDeadEnd.moved) state.history.pop();
+      draggingDeadEnd = null;
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+    return;
+  }
+  if (wiringState) return;
+  const wpEl = e.target.closest('.waypoint');
+  if (wpEl) {
+    e.preventDefault(); e.stopPropagation();
+    const wire = state.wires.find(w => w.id === wpEl.dataset.wire);
+    if (!wire) return;
+    const pts = wire._computed || computeRenderPts(wire);
+    wire.waypoints = pts.slice(1, -1).map(p => ({ ...p }));
+    const idx = parseInt(wpEl.dataset.wpi, 10) - 1;
+    if (idx < 0 || idx >= wire.waypoints.length) return;
+    pushHistory();
+    draggingWP = { wire, idx, moved: false };
+    startWPDrag(e); return;
+  }
+  const hit = e.target.closest('[data-wire]');
+  if (!hit) return;
+  e.preventDefault();
+  const wire = state.wires.find(w => w.id === hit.dataset.wire);
+  if (!wire) return;
+  const r = boardEl.getBoundingClientRect();
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+  const pts = wire._computed || computeRenderPts(wire);
+  const best = findClosestSeg(pts, px, py);
+  if (!best.point) return;
+  pushHistory();
+  const newPts = [...pts];
+  newPts.splice(best.idx + 1, 0, { x: snap(best.point.x), y: snap(best.point.y) });
+  wire.waypoints = optimizeWaypoints(newPts.slice(1, -1).map(p => ({ ...p })));
+  const idx = Math.min(best.idx, wire.waypoints.length - 1);
+  draggingWP = { wire, idx, moved: false };
+  render();
+  startWPDrag(e);
+});
+function startWPDrag(e) {
+  const move = ev => {
+    if (!draggingWP) return;
+    draggingWP.moved = true;
+    const r = boardEl.getBoundingClientRect();
+    const x = Math.max(0, Math.min(BOARD_W, snap(ev.clientX - r.left)));
+    const y = Math.max(0, Math.min(BOARD_H, snap(ev.clientY - r.top)));
+    draggingWP.wire.waypoints[draggingWP.idx] = { x, y };
+    draggingWP.wire._computed = null;
+    redrawWires();
+  };
+  const up = () => {
+    if (draggingWP) {
+      if (!draggingWP.moved) {
+        draggingWP.wire.waypoints.splice(draggingWP.idx, 1);
+        state.history.pop();
+      }
+      draggingWP.wire.waypoints = optimizeWaypoints(draggingWP.wire.waypoints);
+    }
+    draggingWP = null;
+    render();
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    window.removeEventListener('pointercancel', up);
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+  window.addEventListener('pointercancel', up);
+}
+wiresEl.addEventListener('contextmenu', e => {
+  const hit = e.target.closest('[data-wire]');
+  if (!hit) return;
+  e.preventDefault(); e.stopPropagation();
+  const wireId = hit.dataset.wire;
+  pushHistory();
+  state.wires = state.wires.filter(w => w.id !== wireId);
+  cleanupVirtualTerms();
+  render(); runSim();
+  setStatus('✂️ Đã xóa dây.', 'info');
+  speak('Đã xóa dây');
+}, true);
+
+/* ============================================================
+   COMPONENT DRAG
+   ============================================================ */
+function isOverTrash(x, y) {
+  const r = trashBinEl.getBoundingClientRect();
+  const pad = 10;
+  return x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
+}
+let compTapInfo = { compId: null, time: 0, timer: null, x: 0, y: 0 };
+function handleCompTap(compId, x, y) {
+  const now = Date.now();
+  const isDouble = compTapInfo.compId === compId &&
+                  (now - compTapInfo.time) < 420 &&
+                  Math.hypot(x - compTapInfo.x, y - compTapInfo.y) < 40;
+  if (isDouble) {
+    if (compTapInfo.timer) clearTimeout(compTapInfo.timer);
+    compTapInfo = { compId: null, time: 0, timer: null, x: 0, y: 0 };
+    rotateComp(compId);
+    return;
+  }
+  const c = state.components.find(cc => cc.id === compId);
+  if (!c) return;
+  compTapInfo.compId = compId;
+  compTapInfo.time = now;
+  compTapInfo.x = x;
+  compTapInfo.y = y;
+  const isToggleable = ['sw1','sw3','sw3m','breaker2'].includes(c.type) || (c.type === 'fuse' && c.blown);
+  if (isToggleable) {
+    if (compTapInfo.timer) clearTimeout(compTapInfo.timer);
+    compTapInfo.timer = setTimeout(() => {
+      const c2 = state.components.find(cc => cc.id === compId);
+      if (c2) toggleComp(c2);
+      compTapInfo.timer = null;
+    }, 300);
+  }
+}
+function onCompPointerDown(e) {
+  if (e.button !== 0 && e.pointerType === 'mouse') return;
+  if (wiringState) { cancelWiring(); return; }
+  const el = e.currentTarget;
+  const c = state.components.find(x => x.id === el.dataset.id);
+  if (!c) return;
+  const d = DEFS[c.type];
+  const sx = e.clientX, sy = e.clientY;
+  const ox = c.x, oy = c.y;
+  let moved = false, historyPushed = false;
+  let overTrash = false;
+  let longPressFired = false;
+  const startX = e.clientX, startY = e.clientY;
+  try { el.setPointerCapture(e.pointerId); } catch (_) {}
+  const longPressTimer = setTimeout(() => {
+    if (moved) return;
+    longPressFired = true;
+    if (compTapInfo.timer) { clearTimeout(compTapInfo.timer); compTapInfo.timer = null; compTapInfo.compId = null; }
+    try { el.releasePointerCapture(e.pointerId); } catch(_) {}
+    showCtxMenu(startX, startY, c.id);
+    showToast('📋 Đã mở menu ngữ cảnh', 1500);
+  }, 2200);
+  const move = ev => {
+    const dx = ev.clientX - sx, dy = ev.clientY - sy;
+    if (!moved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      moved = true;
+      clearTimeout(longPressTimer);
+      if (!historyPushed) { pushHistory(); historyPushed = true; }
+    }
+    if (moved && !longPressFired) {
+      const w = c.w || d.w, h = c.h || d.h;
+      c.x = Math.max(0, Math.min(BOARD_W - w, ox + dx));
+      c.y = Math.max(0, Math.min(BOARD_H - h, oy + dy));
+      el.style.left = c.x + 'px';
+      el.style.top = c.y + 'px';
+      redrawWires();
+      const nowOver = isOverTrash(ev.clientX, ev.clientY) && c.type !== 'board';
+      if (nowOver !== overTrash) {
+        overTrash = nowOver;
+        trashBinEl.classList.toggle('active', overTrash);
+      }
+    }
+  };
+  const up = ev => {
+    clearTimeout(longPressTimer);
+    el.removeEventListener('pointermove', move);
+    el.removeEventListener('pointerup', up);
+    el.removeEventListener('pointercancel', up);
+    trashBinEl.classList.remove('active');
+    if (longPressFired) return;
+    if (!moved) handleCompTap(c.id, ev.clientX, ev.clientY);
+    else if (overTrash) { removeComp(c.id); showToast('🗑️ Đã xóa linh kiện'); speak('Đã xóa linh kiện'); }
+  };
+  el.addEventListener('pointermove', move);
+  el.addEventListener('pointerup', up);
+  el.addEventListener('pointercancel', up);
+}
+function onResizePointerDown(e) {
+  e.stopPropagation(); e.preventDefault();
+  const handle = e.currentTarget;
+  const pos = handle.dataset.handle;
+  const c = state.components.find(x => x.id === handle.dataset.comp);
+  if (!c) return;
+  const sx = e.clientX, sy = e.clientY;
+  const ow = c.w || DEFS.board.w, oh = c.h || DEFS.board.h;
+  const ox = c.x, oy = c.y;
+  let historyPushed = false;
+  try { handle.setPointerCapture(e.pointerId); } catch (_) {}
+  const move = ev => {
+    if (!historyPushed) { pushHistory(); historyPushed = true; }
+    const dx = ev.clientX - sx, dy = ev.clientY - sy;
+    let nw = ow, nh = oh, nx = ox, ny = oy;
+    if (pos.includes('e')) nw = Math.max(120, ow + dx);
+    if (pos.includes('w')) { nw = Math.max(120, ow - dx); nx = ox + (ow - nw); }
+    if (pos.includes('s')) nh = Math.max(90, oh + dy);
+    if (pos.includes('n')) { nh = Math.max(90, oh - dy); ny = oy + (oh - nh); }
+    c.w = Math.round(nw); c.h = Math.round(nh); c.x = Math.round(nx); c.y = Math.round(ny);
+    const el = boardEl.querySelector(`.comp[data-id="${c.id}"]`);
+    if (el) {
+      el.style.width = c.w + 'px'; el.style.height = c.h + 'px';
+      el.style.left = c.x + 'px'; el.style.top = c.y + 'px';
+    }
+  };
+  const up = () => {
+    handle.removeEventListener('pointermove', move);
+    handle.removeEventListener('pointerup', up);
+    handle.removeEventListener('pointercancel', up);
+  };
+  handle.addEventListener('pointermove', move);
+  handle.addEventListener('pointerup', up);
+  handle.addEventListener('pointercancel', up);
+}
+function toggleComp(c) {
+  if (c.type === 'sw1') {
+    pushHistory(); c.closed = !c.closed;
+    setStatus(c.closed ? '🔛 Công tắc 2 cực: ĐÓNG.' : '🔴 Công tắc 2 cực: MỞ.', 'info');
+    speak(c.closed ? 'Công tắc đóng' : 'Công tắc mở');
+  } else if (c.type === 'sw3' || c.type === 'sw3m') {
+    pushHistory();
+    c.state3 = (c.state3 === 2) ? 1 : 2;
+    const label = c.state3 === 1 ? 'Nối cực 1' : 'Nối cực 2';
+    setStatus(`🔀 Công tắc 3 cực: ${label}.`, 'info');
+    speak('Công tắc ba cực ' + label.toLowerCase());
+  } else if (c.type === 'breaker2') {
+    pushHistory(); c.closed = !c.closed;
+    setStatus(c.closed ? '🔛 Cầu dao: ĐÓNG.' : '🔴 Cầu dao: MỞ.', 'info');
+    speak(c.closed ? 'Cầu dao đóng' : 'Cầu dao mở');
+  } else if (c.type === 'fuse' && c.blown) {
+    pushHistory(); c.blown = false;
+    setStatus('🔧 Đã thay cầu chì mới.', 'info');
+    speak('Đã thay cầu chì mới');
+  } else return;
+  render(); runSim();
+}
+function addComp(type, x, y) {
+  const d = DEFS[type];
+  const comp = {
+    id: 'c' + (uid++), type, x, y,
+    flipH: false, flipV: false, rotation: 0,
+    closed: false, state3: 1, blown: false, on: false
+  };
+  if (type === 'board') { comp.w = d.w; comp.h = d.h; }
+  state.components.push(comp);
+  render(); runSim();
+}
+function removeComp(id) {
+  pushHistory();
+  state.wires = state.wires.filter(w => w.a.comp !== id && w.b.comp !== id);
+  cleanupVirtualTerms();
+  state.components = state.components.filter(c => c.id !== id);
+  render(); runSim();
+  setStatus('🗑️ Đã xóa linh kiện.', 'info');
+}
+function flipComp(id, axis) {
+  const c = state.components.find(x => x.id === id);
+  if (!c) return;
+  pushHistory();
+  if (axis === 'h') c.flipH = !c.flipH; else c.flipV = !c.flipV;
+  render(); runSim();
+  speak(axis === 'h' ? 'Đã lật ngang linh kiện' : 'Đã lật dọc linh kiện');
+}
+function rotateComp(id) {
+  const c = state.components.find(x => x.id === id);
+  if (!c) return;
+  pushHistory();
+  c.rotation = ((c.rotation || 0) + 90) % 360;
+  render(); runSim();
+  setStatus(`🔄 Đã xoay linh kiện (${c.rotation}°).`, 'info');
+  speak('Đã xoay chín mươi độ');
+}
+
+/* ============================================================
+   MENU NGỮ CẢNH
+   ============================================================ */
+let ctxMenuEl = null;
+function showCtxMenu(x, y, compId) {
+  hideCtxMenu();
+  const m = document.createElement('div');
+  m.className = 'ctx-menu';
+  m.style.left = Math.min(x, window.innerWidth - 220) + 'px';
+  m.style.top = Math.min(y, window.innerHeight - 220) + 'px';
+  m.innerHTML = `
+    <button data-act="rotate">🔄 Xoay 90°</button>
+    <button data-act="flipH">↔️ Lật ngang</button>
+    <button data-act="flipV">↕️ Lật dọc</button>
+    <button data-act="del" class="danger">🗑️ Xóa linh kiện</button>
+  `;
+  m.addEventListener('click', ev => {
+    const btn = ev.target.closest('[data-act]');
+    if (!btn) return;
+    const act = btn.dataset.act;
+    if (act === 'rotate') rotateComp(compId);
+    else if (act === 'flipH') flipComp(compId, 'h');
+    else if (act === 'flipV') flipComp(compId, 'v');
+    else if (act === 'del') removeComp(compId);
+    hideCtxMenu();
+  });
+  document.body.appendChild(m);
+  ctxMenuEl = m;
+}
+function hideCtxMenu() { if (ctxMenuEl) { ctxMenuEl.remove(); ctxMenuEl = null; } }
+document.addEventListener('pointerdown', e => { if (ctxMenuEl && !ctxMenuEl.contains(e.target)) hideCtxMenu(); });
+
+/* ============================================================
+   PHÂN TÍCH MẠCH
+   ============================================================ */
+function buildNet() {
+  const parent = {};
+  const find = x => {
+    if (parent[x] === undefined) parent[x] = x;
+    while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; }
+    return x;
+  };
+  const union = (a, b) => { a = find(a); b = find(b); if (a !== b) parent[a] = b; };
+  state.components.forEach(c =>
+    DEFS[c.type].terms.forEach(t => { parent[key(c.id, t.id)] = key(c.id, t.id); }));
+  Object.keys(state.virtualTerms).forEach(vid => { parent[key(VCOMP, vid)] = key(VCOMP, vid); });
+  state.wires.forEach(w => union(key(w.a.comp, w.a.term), key(w.b.comp, w.b.term)));
+  return find;
+}
+function buildEdges(find) {
+  const edges = [];
+  state.components.forEach(c => {
+    const d = DEFS[c.type];
+    if (c.type === 'source' || c.type === 'board') return;
+    if (c.type === 'socket') {
+      edges.push({ comp: c, load: true, type: 'socket',
+        a: find(key(c.id,'L')), b: find(key(c.id,'N')) }); return;
+    }
+    if (c.type === 'bulb') {
+      edges.push({ comp: c, load: true, type: 'bulb',
+        a: find(key(c.id,'t1')), b: find(key(c.id,'t2')) }); return;
+    }
+    let conduct = false;
+    if (c.type === 'fuse') conduct = !c.blown;
+    if (c.type === 'breaker2') conduct = !!c.closed;
+    if (c.type === 'sw1') conduct = !!c.closed;
+    if (c.type === 'sw3' || c.type === 'sw3m') conduct = true;
+    if (conduct) {
+      if (c.type === 'breaker2') {
+        edges.push({ comp:c, load:false, type:'breaker2a',
+          a: find(key(c.id,'in1')), b: find(key(c.id,'out1')) });
+        edges.push({ comp:c, load:false, type:'breaker2b',
+          a: find(key(c.id,'in2')), b: find(key(c.id,'out2')) });
+      } else if (c.type === 'sw3' || c.type === 'sw3m') {
+        const trav = (c.state3 === 2) ? 't2' : 't1';
+        edges.push({ comp:c, load:false, type:'sw3',
+          a: find(key(c.id,'com')), b: find(key(c.id, trav)) });
+      } else {
+        const [t1, t2] = d.terms;
+        edges.push({ comp:c, load:false, type:c.type,
+          a: find(key(c.id, t1.id)), b: find(key(c.id, t2.id)) });
+      }
+    }
+  });
+  return edges;
+}
+function reachable(start, target, edges, skipLoad) {
+  const adj = {};
+  edges.forEach(e => {
+    if (skipLoad && e.load) return;
+    if (!adj[e.a]) adj[e.a] = [];
+    if (!adj[e.b]) adj[e.b] = [];
+    adj[e.a].push(e.b); adj[e.b].push(e.a);
+  });
+  const seen = new Set([start]), stack = [start];
+  while (stack.length) {
+    const n = stack.pop();
+    if (n === target) return true;
+    (adj[n]||[]).forEach(m => { if (!seen.has(m)) { seen.add(m); stack.push(m); } });
+  }
+  return false;
+}
+function analyze() {
+  const src = state.components.find(c => c.type === 'source');
+  if (!src) return null;
+  const find = buildNet();
+  const netA = find(key(src.id, 'A')), net0 = find(key(src.id, '0'));
+  const edges = buildEdges(find);
+  const shortDirect = (netA === net0);
+  const connected = shortDirect || reachable(netA, net0, edges, false);
+  const short = shortDirect || reachable(netA, net0, edges, true);
+  return { src, find, netA, net0, edges, connected, short };
+}
+function checkLoadOn(comp, r) {
+  let tA, tB;
+  if (comp.type === 'bulb') { tA = 't1'; tB = 't2'; }
+  else if (comp.type === 'socket') { tA = 'L'; tB = 'N'; }
+  else return false;
+  const n1 = r.find(key(comp.id, tA));
+  const n2 = r.find(key(comp.id, tB));
+  if (n1 === n2) return false;
+  const otherEdges = r.edges.filter(e => !(e.comp && e.comp.id === comp.id));
+  const n1FromA = (n1 === r.netA) || reachable(r.netA, n1, otherEdges, false);
+  const n2From0 = (n2 === r.net0) || reachable(r.net0, n2, otherEdges, false);
+  if (n1FromA && n2From0) return true;
+  const n2FromA = (n2 === r.netA) || reachable(r.netA, n2, otherEdges, false);
+  const n1From0 = (n1 === r.net0) || reachable(r.net0, n1, otherEdges, false);
+  if (n2FromA && n1From0) return true;
+  return false;
+}
+
+/* ============================================================
+   MÔ PHỎNG
+   ============================================================ */
+function clearOutputs() {
+  state.components.forEach(c => c.on = false);
+  state.wires.forEach(w => w.live = false);
+}
+function runSim() {
+  clearOutputs();
+  if (!state.powered) {
+    render();
+    setStatus('⏸️ Nguồn đã ngắt. Bấm "CẤP NGUỒN" để chạy thí nghiệm.', 'info');
+    return;
+  }
+  let r = analyze();
+  if (!r) { render(); setStatus('❌ Chưa có nguồn điện.', 'warn'); return; }
+  if (!r.connected) {
+    render();
+    setStatus('🔓 MẠCH HỞ — chưa có dòng điện.', 'warn');
+    return;
+  }
+  if (r.short) {
+    let msg = '';
+    const fuse = state.components.find(c => c.type === 'fuse' && !c.blown);
+    if (fuse) { fuse.blown = true; msg = '⚡ CHẬP MẠCH A–0! Cầu chì đã NỔ.'; }
+    else {
+      const br = state.components.find(c => c.type === 'breaker2' && c.closed);
+      if (br) { br.closed = false; msg = '⚡ CHẬP MẠCH! Cầu dao đã TỰ NGẮT.'; }
+      else msg = '🔥 CHẬP MẠCH! NGUY HIỂM CHÁY NỔ!';
+    }
+    explodeEffect();
+    r = analyze();
+    render(); setStatus(msg, 'error');
+    speak('Cảnh báo! Chập mạch! Hãy kiểm tra lại, Win ạ.');
+    return;
+  }
+  state.components.forEach(c => {
+    if (c.type === 'bulb' || c.type === 'socket') c.on = checkLoadOn(c, r);
+  });
+  const distA = bfsDistance(r.netA, r.edges);
+  const dist0 = bfsDistance(r.net0, r.edges);
+  state.wires.forEach(w => {
+    const a = r.find(key(w.a.comp, w.a.term));
+    const b = r.find(key(w.b.comp, w.b.term));
+    w._distA_a = distA[a] !== undefined ? distA[a] : 9999;
+    w._distA_b = distA[b] !== undefined ? distA[b] : 9999;
+    w._dist0_a = dist0[a] !== undefined ? dist0[a] : 9999;
+    w._dist0_b = dist0[b] !== undefined ? dist0[b] : 9999;
+    const aLive = (a === r.netA) || (a === r.net0) ||
+                  reachable(r.netA, a, r.edges, true) || reachable(r.net0, a, r.edges, true);
+    const bLive = (b === r.netA) || (b === r.net0) ||
+                  reachable(r.netA, b, r.edges, true) || reachable(r.net0, b, r.edges, true);
+    w.live = aLive && bLive;
+  });
+  const bulbs = state.components.filter(c => c.type === 'bulb').sort((a,b) => a.x - b.x);
+  const sockets = state.components.filter(c => c.type === 'socket').sort((a,b) => a.x - b.x);
+  render();
+  if (bulbs.length === 0 && sockets.length === 0) {
+    setStatus('⚠️ Mạch kín nhưng KHÔNG có tải tiêu thụ.', 'warn'); return;
+  }
+  const parts = [];
+  bulbs.forEach((b, i) => parts.push(`Bóng ${i+1} ${b.on ? 'sáng' : 'tắt'}`));
+  sockets.forEach((s, i) => parts.push(`Ổ cắm ${i+1} ${s.on ? 'có điện' : 'không có điện'}`));
+  let t = '✅ Trạng thái tải:\n';
+  bulbs.forEach((b, i) => t += `• Bóng ${i+1}: ${b.on ? 'SÁNG 💡' : 'TẮT'}\n`);
+  sockets.forEach((s, i) => t += `• Ổ cắm ${i+1}: ${s.on ? 'CÓ ĐIỆN' : 'KHÔNG ĐIỆN'}\n`);
+  if (bulbs.every(b => !b.on) && sockets.every(s => !s.on)) {
+    setStatus(t + '\n⚠️ Mạch kín nhưng chưa có tải nào hoạt động.', 'warn');
+    speak('Mạch kín nhưng chưa có tải hoạt động.');
+  } else {
+    setStatus(t, 'ok');
+    speak('Win ạ. ' + parts.join(', ') + '.');
+  }
+}
+function explodeEffect() {
+  boardEl.classList.add('explode');
+  setTimeout(() => boardEl.classList.remove('explode'), 1600);
+  const src = state.components.find(c => c.type === 'source');
+  if (src) {
+    const b = document.createElement('div');
+    b.className = 'blast';
+    b.style.left = (src.x + 60) + 'px';
+    b.style.top = (src.y + 45) + 'px';
+    boardEl.appendChild(b);
+    setTimeout(() => b.remove(), 1000);
+  }
+}
+
+/* ============================================================
+   TTS
+   ============================================================ */
+if ('speechSynthesis' in window) speechSynthesis.getVoices();
+let lastSpokenText = '', lastSpokenTime = 0;
+function speak(text, force = false) {
+  if (!state.audioEnabled) return;
+  if (!('speechSynthesis' in window)) return;
+  const now = Date.now();
+  if (!force && text === lastSpokenText && (now - lastSpokenTime) < 6000) return;
+  lastSpokenText = text; lastSpokenTime = now;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'vi-VN'; u.rate = 1.02; u.pitch = 1.05;
+    const voices = speechSynthesis.getVoices();
+    const vi = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('vi'));
+    if (vi) u.voice = vi;
+    speechSynthesis.speak(u);
+  } catch(e) {}
+}
+document.getElementById('btnAudio').addEventListener('click', e => {
+  state.audioEnabled = !state.audioEnabled;
+  const b = e.currentTarget;
+  b.textContent = state.audioEnabled ? '🔊' : '🔇';
+  b.classList.toggle('muted', !state.audioEnabled);
+  if (!state.audioEnabled) { try { speechSynthesis.cancel(); } catch(_) {} lastSpokenText=''; }
+  else speak('Đã bật giọng hướng dẫn', true);
+});
+
+/* ============================================================
+   ĐIỀU KHIỂN
+   ============================================================ */
+function setStatus(text, type) { statusEl.textContent = text; statusEl.className = 'status-box ' + (type || ''); }
+function updatePowerBtn() {
+  const b = document.getElementById('btnPower');
+  b.classList.toggle('power-on', state.powered);
+  b.classList.toggle('power-off', !state.powered);
+  b.setAttribute('data-tip', state.powered ? 'Ngắt nguồn (Space)' : 'Cấp nguồn (Space)');
+}
+document.getElementById('btnPower').addEventListener('click', () => {
+  state.powered = !state.powered;
+  updatePowerBtn();
+  if (state.powered) {
+    setStatus('🔌 Đã cấp nguồn 220V.', 'info');
+    speak('Đã cấp nguồn hai trăm hai mươi vôn.', true);
+    lastSpokenText = '';
+  }
+  runSim();
+});
+document.getElementById('btnClearWire').addEventListener('click', () => {
+  if (!confirm('Xóa tất cả dây nối?')) return;
+  pushHistory();
+  state.wires = []; state.virtualTerms = {};
+  cancelWiring(); render(); runSim();
+  setStatus('✂️ Đã xóa toàn bộ dây nối.', 'info');
+});
+document.getElementById('btnClear').addEventListener('click', () => {
+  if (!confirm('Xóa toàn bộ linh kiện và dây nối?')) return;
+  pushHistory();
+  state.components = []; state.wires = []; state.virtualTerms = {};
+  cancelWiring(); state.powered = false;
+  updatePowerBtn();
+  render(); runSim();
+  setStatus('🗑️ Đã xóa toàn bộ.', 'info');
+});
+
+/* ============================================================
+   MENU CHÍNH
+   ============================================================ */
+const menuBtn = document.getElementById('btnMenu');
+const menuDropdown = document.getElementById('menuDropdown');
+menuBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  menuDropdown.classList.toggle('show');
+});
+document.addEventListener('pointerdown', e => {
+  if (!menuDropdown.contains(e.target) && e.target !== menuBtn && !menuBtn.contains(e.target)) {
+    menuDropdown.classList.remove('show');
+  }
+});
+menuDropdown.addEventListener('click', e => {
+  const btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  const act = btn.dataset.act;
+  menuDropdown.classList.remove('show');
+  if (act === 'new') {
+    if (!confirm('Tạo mới? Toàn bộ thiết kế hiện tại sẽ bị xóa.')) return;
+    pushHistory();
+    state.components = []; state.wires = []; state.virtualTerms = {}; uid = 1;
+    cancelWiring(); state.powered = false;
+    updatePowerBtn();
+    render(); runSim();
+    setStatus('🆕 Đã tạo mới.', 'info');
+    showToast('Đã tạo mới');
+  } else if (act === 'saveImg') { openSaveModal(false); }
+  else if (act === 'shareZalo') { openSaveModal(true); }
+  else if (act === 'help') {
+    alert(
+      'HƯỚNG DẪN SỬ DỤNG\n\n' +
+      '• Kéo linh kiện từ kho bên trái vào bảng.\n' +
+      '• Chạm vào cực để bắt đầu vẽ dây.\n' +
+      '• Chạm vị trí trống → tạo góc vuông.\n' +
+      '• Chạm đúp trên bảng → kết thúc dây hở.\n' +
+      '• Chạm cực khác → kết thúc dây kín.\n' +
+      '• Chạm-giữ 2s vào dây → xóa dây.\n' +
+      '• CHẠM ĐÚP linh kiện → xoay 90°.\n' +
+      '• NHẤN GIỮ 2-3 GIÂY → mở menu ngữ cảnh.\n' +
+      '• Chạm 1 lần công tắc → đóng/mở.\n' +
+      '• Công tắc 3 cực: chạm → đảo cực 1 ↔ 2.\n' +
+      '• Kéo linh kiện vào sọt rác → xóa.\n' +
+      '• Nút ↩️ góc dưới bảng → hoàn tác (Ctrl+Z).\n' +
+      '• Menu ☰ trên header → Tạo mới / Lưu ảnh / Zalo.'
+    );
+  } else if (act === 'about') {
+    alert(
+      'GIỚI THIỆU\n\n' +
+      'Ứng dụng: Thí nghiệm ảo — Thiết kế mạch điện\n' +
+      'Môn: Công nghệ 9 — Mô đun "Thiết kế mạch điện"\n\n' +
+      'Ý tưởng & thiết kế: GV Nông Văn Hùng\n' +
+      'Trường THCS Đăk Ơ\n' +
+      'Tổ bộ môn: KHTN — Công Nghệ\n' +
+      'Năm học: 2026 — 2027'
+    );
+  }
+});
+
+/* ============================================================
+   MODAL LƯU ẢNH
+   ============================================================ */
+const saveModal = document.getElementById('saveModal');
+const inpDiagramName = document.getElementById('inpDiagramName');
+const inpStudentName = document.getElementById('inpStudentName');
+const inpClass = document.getElementById('inpClass');
+function openSaveModal(shareMode = false) {
+  saveModal._shareMode = shareMode;
+  inpDiagramName.value = ''; inpStudentName.value = ''; inpClass.value = '';
+  saveModal.classList.add('show');
+  setTimeout(() => inpDiagramName.focus(), 120);
+}
+function closeSaveModal() { saveModal.classList.remove('show'); }
+document.getElementById('btnSaveCancel').addEventListener('click', closeSaveModal);
+saveModal.addEventListener('click', e => { if (e.target === saveModal) closeSaveModal(); });
+[inpDiagramName, inpStudentName, inpClass].forEach(inp => {
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnSaveConfirm').click(); }
+    if (e.key === 'Escape') closeSaveModal();
+  });
+});
+document.getElementById('btnSaveConfirm').addEventListener('click', async () => {
+  const dn = inpDiagramName.value.trim();
+  const sn = inpStudentName.value.trim();
+  const cl = inpClass.value.trim();
+  if (!dn) { inpDiagramName.focus(); showToast('⚠️ Vui lòng nhập tên sơ đồ', 1800); return; }
+  const share = !!saveModal._shareMode;
+  closeSaveModal();
+  await doSaveImage(dn, sn, cl, share);
+});
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+async function doSaveImage(diagramName, studentName, className, shareMode = false) {
+  showToast('⏳ Đang tạo ảnh…', 2000);
+  const hidden = [];
+  try {
+    ['.wiring-tip', '.board-actions'].forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => {
+        hidden.push({ el, prev: el.style.display });
+        el.style.display = 'none';
+      });
+    });
+    document.querySelectorAll('#wires .waypoint').forEach(el => {
+      hidden.push({ el, prev: el.style.display });
+      el.style.display = 'none';
+    });
+    const boardCanvas = await html2canvas(boardEl, { backgroundColor: '#f8fafc', scale: 2, useCORS: true, logging: false });
+    const boardDataUrl = boardCanvas.toDataURL('image/png');
+    const now = new Date();
+    const timeStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const temp = document.createElement('div');
+    temp.style.cssText = `position:fixed;top:0;left:-99999px;width:${BOARD_W + 40}px;padding:20px;background:#ffffff;box-sizing:border-box;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;`;
+    temp.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 22px;margin-bottom:16px;background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%);color:#fff;border-radius:14px;box-shadow:0 4px 16px rgba(15,23,42,.15);">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:11px;font-weight:800;color:#93c5fd;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:6px;">SƠ ĐỒ MẠCH ĐIỆN — CÔNG NGHỆ 9</div>
+          <div style="font-size:23px;font-weight:900;color:#ffffff;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(diagramName)}</div>
+        </div>
+        <div style="text-align:right;font-size:14px;line-height:1.75;color:#e2e8f0;flex:none;">
+          <div style="white-space:nowrap;"><b style="color:#93c5fd;font-weight:800;">Học sinh:</b><span style="margin-left:6px;">${escapeHtml(studentName || '—')}</span></div>
+          <div style="white-space:nowrap;"><b style="color:#93c5fd;font-weight:800;">Lớp:</b><span style="margin-left:6px;">${escapeHtml(className || '—')}</span></div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:6px;font-style:italic;white-space:nowrap;">${timeStr}</div>
+        </div>
+      </div>
+      <img src="${boardDataUrl}" style="display:block;width:100%;height:auto;border-radius:12px;border:2px solid #cbd5e1;background:#f8fafc;">
+      <div style="margin-top:14px;padding:10px 18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;text-align:center;font-size:12px;color:#64748b;">
+        🎓 Ý tưởng &amp; thiết kế: GV <b style="color:#1e293b;">Nông Văn Hùng</b> — Trường THCS Đăk Ơ — Tổ KHTN-Công Nghệ — Năm học 2026-2027
+      </div>
+    `;
+    document.body.appendChild(temp);
+    await new Promise(r => setTimeout(r, 120));
+    const finalCanvas = await html2canvas(temp, { backgroundColor: '#ffffff', scale: 2, useCORS: true, logging: false });
+    temp.remove();
+    const blob = await new Promise(res => finalCanvas.toBlob(res, 'image/png'));
+    if (shareMode) {
+      const file = new File([blob], 'mach-dien.png', { type: 'image/png' });
+      const shareText = `${diagramName} — ${studentName || ''} ${className || ''}`.trim();
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: diagramName, text: shareText });
+          showToast('✅ Đã chia sẻ'); speak('Đã chia sẻ'); return;
+        } catch (err) { if (err.name === 'AbortError') { showToast('Đã hủy chia sẻ'); return; } }
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `mach-dien_${Date.now()}.png`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+      await new Promise(res => setTimeout(res, 500));
+      window.open('https://zalo.me/0973088035', '_blank');
+      showToast('📤 Đã tải ảnh. Mở Zalo để gửi tới 0973088035');
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const d = new Date();
+      const ts = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
+      const safeName = diagramName.replace(/[^\p{L}\p{N}_-]+/gu, '_').slice(0, 40);
+      a.download = `mach-dien_${safeName}_${ts}.png`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+      showToast('✅ Đã lưu ảnh PNG'); speak('Đã lưu ảnh mạch điện');
+    }
+  } catch (err) { console.error(err); showToast('❌ Lỗi: ' + err.message); }
+  finally { hidden.forEach(h => { h.el.style.display = h.prev; }); }
+}
+
+/* ============================================================
+   PALETTE
+   ============================================================ */
+function startPaletteDrag(e, type) {
+  if (wiringState) cancelWiring();
+  e.preventDefault();
+  const d = DEFS[type];
+  const ghost = makeCompEl({ id:'ghost', type, x:0, y:0, w: d.w, h: d.h, closed:false, blown:false, on:false, state3:1 }, false);
+  ghost.classList.add('ghost');
+  ghost.style.position = 'fixed';
+  ghost.style.left = (e.clientX - d.w/2) + 'px';
+  ghost.style.top = (e.clientY - d.h/2) + 'px';
+  ghost.style.zIndex = '99999';
+  document.body.appendChild(ghost);
+  const move = ev => { ghost.style.left = (ev.clientX - d.w/2) + 'px'; ghost.style.top = (ev.clientY - d.h/2) + 'px'; };
+  const up = ev => {
+    document.removeEventListener('pointermove', move);
+    document.removeEventListener('pointerup', up);
+    document.removeEventListener('pointercancel', up);
+    ghost.remove();
+    const r = boardEl.getBoundingClientRect();
+    if (ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom) {
+      const x = Math.max(0, Math.min(BOARD_W - d.w, ev.clientX - r.left - d.w/2));
+      const y = Math.max(0, Math.min(BOARD_H - d.h, ev.clientY - r.top - d.h/2));
+      pushHistory();
+      addComp(type, x, y);
+    }
+  };
+  document.addEventListener('pointermove', move);
+  document.addEventListener('pointerup', up);
+  document.addEventListener('pointercancel', up);
+}
+(function initPalette() {
+  const pal = document.getElementById('palette');
+  ['source','fuse','breaker2','sw1','sw3','sw3m','socket','bulb','board'].forEach(t => {
+    const d = DEFS[t];
+    const div = document.createElement('div');
+    div.className = 'pal-item';
+    div.dataset.type = t;
+    div.innerHTML = `<div class="pal-preview">${d.svg({type:t,closed:false,blown:false,on:false,state3:1})}</div><span>${d.name}</span>`;
+    div.addEventListener('pointerdown', e => startPaletteDrag(e, t));
+    pal.appendChild(div);
+  });
+})();
+
+/* ============================================================
+   KHỞI ĐỘNG
+   ============================================================ */
+render();
+updatePowerBtn();
+updateUndoBtn();
+setTimeout(() => {
+  if (state.audioEnabled) speak('Chào mừng Win đến với thí nghiệm ảo thiết kế mạch điện Công nghệ chín.', true);
+}, 800);
+</script>
+</body>
+</html>
